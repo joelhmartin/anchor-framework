@@ -1,0 +1,808 @@
+/* ==========================================================================
+   Anchor Framework — Components (components.css)
+   Buttons, badges, cards, forms, and reusable UI primitives.
+   ========================================================================== */
+
+/* -----------------------------------------------------------------------
+   BUTTONS
+   ----------------------------------------------------------------------- */
+.anchor-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.75rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: -0.01em;
+  transition: all var(--anchor-transition-normal);
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  font-family: inherit;
+  line-height: 1;
+}
+
+.anchor-btn:hover {
+  transform: scale(1.03);
+}
+
+/* Primary */
+.anchor-btn--primary {
+  background: var(--anchor-brand-500);
+  color: #fff;
+}
+
+.anchor-btn--primary:hover {
+  background: var(--anchor-brand-600);
+}
+
+/* Ghost (transparent with border — adapts to context) */
+.anchor-btn--ghost {
+  background: transparent;
+  border: 1px solid rgba(var(--anchor-navy-rgb), 0.15);
+  color: var(--anchor-navy);
+}
+
+.anchor-btn--ghost:hover {
+  background: rgba(var(--anchor-navy-rgb), 0.05);
+}
+
+/* Ghost on dark backgrounds */
+.anchor-section--dark .anchor-btn--ghost,
+.anchor-hero .anchor-btn--ghost,
+.anchor-cta-card .anchor-btn--ghost {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.anchor-section--dark .anchor-btn--ghost:hover,
+.anchor-hero .anchor-btn--ghost:hover,
+.anchor-cta-card .anchor-btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Outline (light bg variant) */
+.anchor-btn--outline {
+  background: transparent;
+  border: 1px solid var(--anchor-surface-300);
+  color: rgba(var(--anchor-navy-rgb), 0.6);
+}
+
+.anchor-btn--outline:hover {
+  border-color: var(--anchor-brand-300);
+}
+
+/* White */
+.anchor-btn--white {
+  background: #fff;
+  color: var(--anchor-navy);
+}
+
+.anchor-btn--white:hover {
+  background: var(--anchor-brand-50);
+}
+
+/* Size variants */
+.anchor-btn--sm {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.8125rem;
+}
+
+.anchor-btn--lg {
+  padding: 1rem 2rem;
+  font-size: 1rem;
+}
+
+/* Button group */
+.anchor-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1em;
+}
+
+.anchor-btn-group--center {
+  justify-content: center;
+}
+
+.anchor-btn-group--right {
+  justify-content: flex-end;
+}
+
+/* Full-width button */
+.anchor-btn--full {
+  width: 100%;
+}
+
+/* -----------------------------------------------------------------------
+   BADGE (Eyebrow Pill)
+   ----------------------------------------------------------------------- */
+.anchor-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.anchor-badge--brand {
+  background: var(--anchor-brand-100);
+  color: var(--anchor-brand-600);
+}
+
+.anchor-badge--dark {
+  background: var(--anchor-brand-500);
+  color: #fff;
+}
+
+.anchor-badge--glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.anchor-badge--accent {
+  background: var(--anchor-brand-500);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* -----------------------------------------------------------------------
+   CARD
+   ----------------------------------------------------------------------- */
+.anchor-card {
+  background: #fff;
+  border-radius: var(--anchor-radius-3xl);
+  border: 1px solid rgba(var(--anchor-surface-200-rgb, 242, 235, 236), 0.6);
+  box-shadow: var(--anchor-shadow-sm);
+  padding: 1.75rem;
+  transition: all var(--anchor-transition-normal);
+}
+
+.anchor-card:hover {
+  box-shadow: var(--anchor-shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Dark variant (for dark section backgrounds) */
+.anchor-card--dark {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.anchor-card--dark:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* Card as link */
+.anchor-card--link {
+  text-decoration: none;
+  display: block;
+}
+
+/* Card image area */
+.anchor-card__image {
+  border-radius: var(--anchor-radius-2xl);
+  overflow: hidden;
+  margin: -0.5rem -0.5rem 1.25rem;
+  position: relative;
+  aspect-ratio: 16 / 10;
+}
+
+.anchor-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--anchor-transition-slow);
+}
+
+.anchor-card:hover .anchor-card__image img {
+  transform: scale(1.05);
+}
+
+/* Category badge overlay inside card image */
+.anchor-card__image .anchor-badge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+}
+
+/* Card meta line */
+.anchor-card__meta {
+  color: rgba(var(--anchor-navy-rgb), 0.4);
+  font-size: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Card icon box spacing */
+.anchor-card__icon {
+  margin-bottom: 1rem;
+}
+
+/* Card title */
+.anchor-card__title {
+  font-family: var(--anchor-font-heading);
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--anchor-navy);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.anchor-card--dark .anchor-card__title {
+  color: #fff;
+}
+
+/* Card text */
+.anchor-card__text {
+  color: rgba(var(--anchor-navy-rgb), 0.6);
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  margin-top: 0.5rem;
+}
+
+.anchor-card--dark .anchor-card__text {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Card link arrow pushed to bottom */
+.anchor-card__arrow {
+  margin-top: auto;
+}
+
+/* -----------------------------------------------------------------------
+   ICON BOX
+   ----------------------------------------------------------------------- */
+.anchor-icon-box {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--anchor-radius-2xl);
+  background: var(--anchor-brand-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.anchor-icon-box svg,
+.anchor-icon-box img {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--anchor-brand-500);
+}
+
+.anchor-icon-box--dark {
+  background: rgba(var(--anchor-brand-500-rgb, 216, 81, 98), 0.15);
+}
+
+.anchor-icon-box--dark svg {
+  color: var(--anchor-brand-400);
+}
+
+/* -----------------------------------------------------------------------
+   FORM INPUTS
+   ----------------------------------------------------------------------- */
+.anchor-input,
+.anchor-textarea,
+.anchor-select {
+  width: 100%;
+  padding: 1.5rem 1rem 0.5rem 1rem;
+  border-radius: var(--anchor-radius-2xl);
+  background: var(--anchor-surface-100);
+  border: 1px solid rgba(var(--anchor-surface-300-rgb, 232, 222, 224), 0.5);
+  color: var(--anchor-navy);
+  font-size: 0.875rem;
+  font-family: inherit;
+  transition: all var(--anchor-transition-normal);
+  outline: none;
+}
+
+.anchor-input:focus,
+.anchor-textarea:focus,
+.anchor-select:focus {
+  border-color: var(--anchor-brand-500);
+  box-shadow: 0 0 0 2px rgba(var(--anchor-brand-500-rgb, 216, 81, 98), 0.1);
+}
+
+.anchor-textarea {
+  resize: none;
+}
+
+/* Form group (floating label container) */
+.anchor-form-group {
+  position: relative;
+}
+
+.anchor-form-label {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  font-size: 0.875rem;
+  color: rgba(var(--anchor-navy-rgb, 29, 26, 26), 0.4);
+  pointer-events: none;
+  transition: all var(--anchor-transition-normal);
+}
+
+.anchor-form-label--active {
+  top: 0.5rem;
+  font-size: 0.625rem;
+  color: var(--anchor-brand-500);
+  font-weight: 600;
+}
+
+/* -----------------------------------------------------------------------
+   MISCELLANEOUS COMPONENTS
+   ----------------------------------------------------------------------- */
+
+/* Glass surfaces */
+.anchor-glass {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.anchor-glass-dark {
+  background: rgba(var(--anchor-navy-rgb, 29, 26, 26), 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Hover lift */
+.anchor-hover-lift {
+  transition: transform var(--anchor-transition-normal);
+}
+
+.anchor-hover-lift:hover {
+  transform: translateY(-1px);
+}
+
+/* Link arrow (e.g. "Learn more →") */
+.anchor-link-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--anchor-brand-500);
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all var(--anchor-transition-normal);
+}
+
+.anchor-link-arrow:hover {
+  gap: 0.75rem;
+}
+
+/* Divider */
+.anchor-divider {
+  height: 1px;
+  background: rgba(var(--anchor-surface-300-rgb, 232, 222, 224), 0.3);
+}
+
+/* Line clamp */
+.anchor-line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* -----------------------------------------------------------------------
+   CONTENT SIDEBAR
+   ----------------------------------------------------------------------- */
+.anchor-content-sidebar {
+  position: sticky;
+  top: 7rem;
+}
+
+.anchor-content-sidebar .anchor-card + .anchor-card {
+  margin-top: 1.5rem;
+}
+
+/* Brand card logo */
+.anchor-content-sidebar__logo {
+  height: 2rem;
+  width: auto;
+  margin-bottom: 1rem;
+}
+
+/* Brand card site name fallback */
+.anchor-content-sidebar__site-name {
+  margin-bottom: 0.75rem;
+  font-size: 1.125rem;
+}
+
+/* Brand card description */
+.anchor-content-sidebar__desc {
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+/* Social links row in brand card */
+.anchor-content-sidebar__social {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.anchor-content-sidebar__social-link {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background: var(--anchor-surface-100);
+  border: 1px solid var(--anchor-surface-300);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(var(--anchor-navy-rgb), 0.4);
+  transition: all var(--anchor-transition-normal);
+}
+
+.anchor-content-sidebar__social-link:hover {
+  color: var(--anchor-brand-500);
+  border-color: var(--anchor-brand-300);
+}
+
+/* Contact card heading */
+.anchor-content-sidebar__title {
+  font-size: 1.125rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Contact card subtitle */
+.anchor-content-sidebar__subtitle {
+  font-size: 0.875rem;
+  margin-bottom: 1.25rem;
+}
+
+/* Contact info block spacing */
+.anchor-content-sidebar__contact {
+  margin-bottom: 1.5rem;
+}
+
+/* Contact info item */
+.anchor-contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.anchor-contact-item__text,
+.anchor-contact-item a {
+  font-size: 0.875rem;
+}
+
+/* Small icon box variant */
+.anchor-icon-box--sm {
+  width: 2rem;
+  height: 2rem;
+}
+
+.anchor-icon-box--sm svg,
+.anchor-icon-box--sm img {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Divider with bottom spacing */
+.anchor-divider--mb {
+  margin-bottom: 1.5rem;
+}
+
+/* Form group spacing */
+.anchor-form-group--spaced {
+  margin-bottom: 1rem;
+}
+
+/* -----------------------------------------------------------------------
+   HEADING GROUP
+   ----------------------------------------------------------------------- */
+.anchor-heading-group__title--dark {
+  color: #fff !important;
+}
+
+.anchor-heading-group__text--dark {
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+/* -----------------------------------------------------------------------
+   IMAGE WRAPPER
+   ----------------------------------------------------------------------- */
+.anchor-image-wrapper {
+  overflow: hidden;
+  position: relative;
+}
+
+.anchor-image-wrapper--rounded-sm {
+  border-radius: var(--anchor-radius-sm);
+}
+
+.anchor-image-wrapper--rounded-md {
+  border-radius: var(--anchor-radius-md);
+}
+
+.anchor-image-wrapper--rounded-lg {
+  border-radius: var(--anchor-radius-lg);
+}
+
+.anchor-image-wrapper--rounded-xl {
+  border-radius: var(--anchor-radius-xl);
+}
+
+.anchor-image-wrapper--rounded-2xl {
+  border-radius: var(--anchor-radius-2xl);
+}
+
+.anchor-image-wrapper--rounded-3xl {
+  border-radius: var(--anchor-radius-3xl);
+}
+
+.anchor-image-wrapper--rounded-4xl {
+  border-radius: var(--anchor-radius-4xl);
+}
+
+.anchor-image-wrapper--rounded-5xl {
+  border-radius: var(--anchor-radius-5xl);
+}
+
+.anchor-image-wrapper__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Overlay gradients */
+.anchor-image-wrapper__overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.anchor-image-wrapper__overlay--bt {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+}
+
+.anchor-image-wrapper__overlay--lr {
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.5), transparent);
+}
+
+/* -----------------------------------------------------------------------
+   QUOTE ITEM
+   ----------------------------------------------------------------------- */
+.anchor-quote__footer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.anchor-quote__avatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.anchor-quote__author {
+  font-style: normal;
+  font-weight: 600;
+  display: block;
+}
+
+.anchor-quote__role {
+  font-size: 0.875rem;
+  opacity: 0.55;
+}
+
+/* =======================================================================
+   HERO CAROUSEL
+   ======================================================================= */
+.anchor-carousel {
+  position: relative;
+  height: max(70dvh, 500px);
+  overflow: hidden;
+}
+
+.anchor-carousel__slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+
+.anchor-carousel__slide--active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.anchor-carousel__content {
+  position: relative;
+  z-index: 10;
+  padding-top: 6rem;
+  padding-bottom: 5rem;
+}
+
+/* Nav wrapper */
+/* Nav wrapper — sits above the stretched link */
+.anchor-carousel__nav-wrap {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  padding-bottom: 1.5rem;
+}
+
+.anchor-carousel__nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Arrows */
+.anchor-carousel__arrow {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  cursor: pointer;
+  transition: background var(--anchor-transition-normal);
+}
+
+.anchor-carousel__arrow:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Dots */
+.anchor-carousel__dots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.anchor-carousel__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all var(--anchor-transition-normal);
+}
+
+.anchor-carousel__dot--active {
+  background: #fff;
+  width: 1.5rem;
+  border-radius: 9999px;
+}
+
+/* Auto-play progress bar (optional) */
+.anchor-carousel[data-carousel-autoplay] .anchor-carousel__dot--active::after {
+  content: "";
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--anchor-brand-400);
+  animation: carousel-progress var(--carousel-interval, 5s) linear;
+}
+
+@keyframes carousel-progress {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* =======================================================================
+   STICKY FOOTER BAR (mobile only)
+   ======================================================================= */
+.anchor-sticky-footer {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .anchor-sticky-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    gap: 5px;
+    padding: 0.5rem 0.75rem;
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    background: var(--anchor-navy);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+  }
+
+  .anchor-sticky-footer--visible {
+    transform: translateY(0);
+  }
+
+  .anchor-sticky-footer__btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--anchor-radius-md, 0.5rem);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+      background var(--anchor-transition-normal),
+      opacity var(--anchor-transition-normal);
+    white-space: nowrap;
+  }
+
+  .anchor-sticky-footer__btn--primary {
+    background: var(--anchor-brand-500);
+    color: #fff;
+  }
+
+  .anchor-sticky-footer__btn--primary:hover {
+    opacity: 0.9;
+  }
+
+  .anchor-sticky-footer__btn--secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+
+  .anchor-sticky-footer__btn--secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .anchor-sticky-footer__btn--icon-only {
+    flex: 0 0 auto;
+    padding: 0.75rem;
+  }
+}
+
+/* =======================================================================
+   ROTATING TEXT
+   Circular animated text badge using SVG textPath.
+   ======================================================================= */
+
+@keyframes anchor-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.anchor-rotating-text {
+  display: block;
+  flex-shrink: 0;
+  animation: anchor-spin var(--rtp-speed, 18s) linear infinite;
+}
+
+.anchor-rotating-text svg {
+  display: block;
+  overflow: visible;
+}

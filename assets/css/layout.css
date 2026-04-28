@@ -1,0 +1,155 @@
+/* ==========================================================================
+   Anchor Framework — Layout (layout.css)
+   Container, grid system, flex utilities, and spacing helpers.
+   ========================================================================== */
+
+/* -----------------------------------------------------------------------
+   Container
+   ----------------------------------------------------------------------- */
+.anchor-container {
+  max-width: var(--anchor-container-max);
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+.anchor-container--narrow {
+  max-width: var(--anchor-container-narrow);
+}
+
+/* -----------------------------------------------------------------------
+   Section Padding (horizontal gutters)
+   Equivalent to Tailwind: px-5 md:px-8 lg:px-16 xl:px-24
+   ----------------------------------------------------------------------- */
+.anchor-section-pad {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* -----------------------------------------------------------------------
+   Section Vertical Spacing
+   ----------------------------------------------------------------------- */
+.anchor-section {
+  padding-top: var(--anchor-section-py);
+  padding-bottom: var(--anchor-section-py);
+}
+
+.anchor-section--flush-bottom {
+  padding-bottom: 0;
+}
+
+
+/* -----------------------------------------------------------------------
+   Main Content Area
+   ----------------------------------------------------------------------- */
+.anchor-main {
+  min-height: 100vh;
+}
+
+/* -----------------------------------------------------------------------
+   Grid System
+   ----------------------------------------------------------------------- */
+.anchor-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+/* 2-column: stacks on mobile, 2 cols on sm+ */
+.anchor-grid--2 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+/* 3-column: stacks on mobile, 2 cols on sm, 3 cols on lg */
+.anchor-grid--3 {
+  grid-template-columns: 1fr;
+}
+
+/* 4-column: stacks on mobile, 2 cols on sm, 4 cols on lg */
+.anchor-grid--4 {
+  grid-template-columns: 1fr;
+}
+
+/* 5+7 column split (footer layout) */
+.anchor-grid--5-7 {
+  grid-template-columns: 1fr;
+}
+
+/* -----------------------------------------------------------------------
+   Sidebar Layout
+   ----------------------------------------------------------------------- */
+.anchor-sidebar-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+}
+
+/* -----------------------------------------------------------------------
+   Flex Utilities
+   ----------------------------------------------------------------------- */
+.anchor-flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.anchor-flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.anchor-flex-wrap {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* -----------------------------------------------------------------------
+   Gap Utilities
+   ----------------------------------------------------------------------- */
+.anchor-gap-sm {
+  gap: 1rem;
+}
+
+.anchor-gap-md {
+  gap: 1.5rem;
+}
+
+.anchor-gap-lg {
+  gap: 2.5rem;
+}
+
+/* -----------------------------------------------------------------------
+   Text Alignment
+   ----------------------------------------------------------------------- */
+.anchor-text-center {
+  text-align: center;
+}
+
+/* -----------------------------------------------------------------------
+   Auto Margin (horizontal centering)
+   ----------------------------------------------------------------------- */
+.anchor-mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* -----------------------------------------------------------------------
+   Max-Width Constraints
+   ----------------------------------------------------------------------- */
+.anchor-max-w-xl {
+  max-width: 36rem;
+}
+
+.anchor-max-w-2xl {
+  max-width: 42rem;
+}
+
+.anchor-max-w-3xl {
+  max-width: 48rem;
+}
+
+.anchor-max-w-4xl {
+  max-width: 56rem;
+}

@@ -1,0 +1,102 @@
+/* ==========================================================================
+   Anchor Framework — Design Tokens (variables.css)
+   All CSS custom properties for the theme.
+   ========================================================================== */
+
+:root {
+  /* -----------------------------------------------------------------------
+   Brand Colors
+   ----------------------------------------------------------------------- */
+
+  --anchor-brand-50: #eef8f8;
+  --anchor-brand-100: #d7eeef;
+  --anchor-brand-200: #afdde0;
+  --anchor-brand-300: #7fc5ca;
+  --anchor-brand-400: #4da7af;
+  --anchor-brand-500: #1f7f88;
+  --anchor-brand-600: #004f59;
+  --anchor-brand-700: #003f47;
+  --anchor-brand-800: #033239;
+  --anchor-brand-900: #05282d;
+  --anchor-brand-950: #02171a;
+
+  /* RGB triplets for use in rgba() */
+  --anchor-brand-400-rgb: 77, 167, 175;
+  --anchor-brand-500-rgb: 31, 127, 136;
+  --anchor-brand-600-rgb: 0, 79, 89;
+
+  /* -----------------------------------------------------------------------
+   Accent Colors
+   ----------------------------------------------------------------------- */
+  --anchor-accent-400: #7fd7dc;
+  --anchor-accent-500: #49b7bf;
+  --anchor-accent-600: #1d8c95;
+
+  /* -----------------------------------------------------------------------
+   Surface / Neutral Colors
+   ----------------------------------------------------------------------- */
+  --anchor-surface-50: #ffffff;
+  --anchor-surface-100: #f5faf9;
+  --anchor-surface-200: #eaf2f1;
+  --anchor-surface-300: #dbe7e5;
+  --anchor-surface-400: #c2d3d0;
+
+  /* RGB triplets for use in rgba() */
+  --anchor-surface-200-rgb: 234, 242, 241;
+  --anchor-surface-300-rgb: 219, 231, 229;
+
+  /* -----------------------------------------------------------------------
+   Navy / Dark Colors
+   ----------------------------------------------------------------------- */
+  --anchor-navy: #05282d;
+  --anchor-navy-light: #0a3d45;
+  --anchor-navy-dark: #02171a;
+
+  /* RGB triplet */
+  --anchor-navy-rgb: 5, 40, 45;
+
+  /* -----------------------------------------------------------------------
+     Font Families
+     ----------------------------------------------------------------------- */
+  --anchor-font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --anchor-font-heading: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --anchor-font-drama: "Cormorant Garamond", "Georgia", "Times New Roman", serif;
+  --anchor-font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", "Menlo", monospace;
+
+  /* -----------------------------------------------------------------------
+     Border Radii
+     ----------------------------------------------------------------------- */
+  --anchor-radius-lg: 0.75rem; /* 12px */
+  --anchor-radius-xl: 1rem; /* 16px */
+  --anchor-radius-2xl: 1.5rem; /* 24px */
+  --anchor-radius-3xl: 2rem; /* 32px */
+  --anchor-radius-4xl: 3rem; /* 48px */
+  --anchor-radius-5xl: 4rem; /* 64px */
+
+  /* -----------------------------------------------------------------------
+     Container / Spacing
+     ----------------------------------------------------------------------- */
+  --anchor-container-max: 1440px; /* 1152px — matches nav pill width */
+  --anchor-container-narrow: 1440px; /* 896px — for narrower text/contact sections */
+
+  /* -----------------------------------------------------------------------
+     Transitions
+     ----------------------------------------------------------------------- */
+  --anchor-transition-fast: 0.15s;
+  --anchor-transition-normal: 0.3s;
+  --anchor-transition-slow: 0.5s;
+
+  /* -----------------------------------------------------------------------
+     Section Spacing
+     ----------------------------------------------------------------------- */
+  --anchor-section-py: clamp(3rem, 5vw, 6rem);
+  --anchor-section-py-lg: clamp(4rem, 7vw, 8rem);
+
+  /* -----------------------------------------------------------------------
+     Shadows
+     ----------------------------------------------------------------------- */
+  --anchor-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --anchor-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --anchor-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.06), 0 4px 6px rgba(0, 0, 0, 0.04);
+  --anchor-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.08), 0 8px 10px rgba(0, 0, 0, 0.04);
+}

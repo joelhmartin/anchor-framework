@@ -1,0 +1,207 @@
+/* ==========================================================================
+   Anchor Framework — Responsive (responsive.css)
+   Media queries for all breakpoints and visibility utilities.
+   ========================================================================== */
+
+/* =======================================================================
+   SM — 640px
+   ======================================================================= */
+@media (min-width: 640px) {
+
+  .anchor-section-pad {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  .anchor-grid--2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .anchor-grid--3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .anchor-grid--4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+}
+
+
+/* =======================================================================
+   MD — 768px
+   ======================================================================= */
+@media (min-width: 768px) {
+
+  .anchor-section {
+    padding-top: var(--anchor-section-py-lg);
+    padding-bottom: var(--anchor-section-py-lg);
+  }
+
+  /* Restore flush-bottom override (cancelled by the rule above at this breakpoint) */
+  .anchor-section--flush-bottom {
+    padding-bottom: 0;
+  }
+
+  .anchor-section-pad {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  .anchor-nav {
+    padding: 0.625rem 1.25rem;
+  }
+
+  .anchor-grid--5-7 {
+    grid-template-columns: 5fr 7fr;
+  }
+
+  .anchor-cta-card {
+    padding: 4rem;
+    border-radius: var(--anchor-radius-5xl);
+    min-height: 600px;
+  }
+
+  .anchor-footer {
+    border-radius: 4rem 4rem 0 0;
+  }
+
+  .anchor-footer__top {
+    padding-top: 6rem;
+  }
+
+  .anchor-footer__bottom {
+    padding-bottom: 2.5rem;
+  }
+
+  .anchor-faq-item__question {
+    font-size: 1.125rem;
+  }
+
+  .anchor-article h2 {
+    font-size: 1.875rem;
+  }
+
+  .anchor-floating-badge {
+    bottom: -1.5rem;
+    left: auto;
+    right: -1.5rem;
+    transform: none;
+  }
+
+  /* ISO split: activate two-column at sm */
+  .anchor-iso-split__grid {
+    min-height: 580px;
+  }
+
+}
+
+/* =======================================================================
+   MD — 768px
+   ======================================================================= */
+@media (max-width: 639px) {
+
+  /* ISO split: stack on mobile — image below content, capped height */
+  .anchor-iso-split__grid {
+    grid-template-columns: 1fr;
+    min-height: unset;
+  }
+
+  .anchor-iso-split__image-col {
+    order: 2 !important;
+    max-height: 340px;
+    overflow: hidden;
+  }
+
+  .anchor-iso-split__content {
+    order: 1 !important;
+    padding: var(--anchor-section-py) 0 0;
+  }
+
+  .anchor-iso-split__img {
+    max-height: 320px;
+  }
+
+}
+
+
+/* =======================================================================
+   LG — 1024px
+   ======================================================================= */
+@media (min-width: 1024px) {
+
+  .anchor-section-pad {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  .anchor-grid--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .anchor-grid--4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .anchor-sidebar-layout {
+    grid-template-columns: 1fr 320px;
+    gap: 3rem;
+  }
+
+  /* Show desktop nav links */
+  .anchor-nav__links {
+    display: flex;
+    gap: 0.125rem;
+  }
+
+  /* Hide hamburger on desktop */
+  .anchor-hamburger {
+    display: none;
+  }
+
+  /* Visibility: hide on desktop */
+  .anchor-hide-desktop {
+    display: none;
+  }
+
+}
+
+
+/* =======================================================================
+   XL — 1280px
+   ======================================================================= */
+@media (min-width: 1280px) {
+
+  .anchor-section-pad {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+}
+
+
+/* =======================================================================
+   VISIBILITY UTILITIES
+   ======================================================================= */
+
+/* Hide on mobile, show on lg+ */
+.anchor-hide-mobile {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .anchor-hide-mobile {
+    display: block;
+  }
+}
+
+/* Show on mobile, hide on lg+ */
+.anchor-show-mobile {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .anchor-show-mobile {
+    display: none;
+  }
+}

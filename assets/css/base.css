@@ -1,0 +1,226 @@
+/* ==========================================================================
+   Anchor Framework — Base Styles (base.css)
+   Modern reset, typography defaults, and foundational element styles.
+   ========================================================================== */
+
+/* -----------------------------------------------------------------------
+   Modern Reset
+   ----------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--anchor-surface-100);
+  color: var(--anchor-navy);
+  font-family: var(--anchor-font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* -----------------------------------------------------------------------
+   Selection
+   ----------------------------------------------------------------------- */
+::selection {
+  background: rgba(var(--anchor-brand-500-rgb), 0.2);
+  color: var(--anchor-navy);
+}
+
+::-moz-selection {
+  background: rgba(var(--anchor-brand-500-rgb), 0.2);
+  color: var(--anchor-navy);
+}
+
+/* -----------------------------------------------------------------------
+   Media Defaults
+   ----------------------------------------------------------------------- */
+img,
+picture,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+img {
+  font-style: italic;          /* alt text styling fallback */
+  vertical-align: middle;
+}
+
+/* -----------------------------------------------------------------------
+   Links
+   ----------------------------------------------------------------------- */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* -----------------------------------------------------------------------
+   Typography — Headings
+   ----------------------------------------------------------------------- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--anchor-font-heading);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--anchor-navy);
+}
+
+h1 {
+  font-size: clamp(2rem, 5vw, 4.5rem);
+}
+
+h2 {
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+}
+
+h3 {
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+}
+
+h4 {
+  font-size: 1.125rem;
+}
+
+h5 {
+  font-size: 1rem;
+}
+
+h6 {
+  font-size: 0.875rem;
+}
+
+/* -----------------------------------------------------------------------
+   Typography — Body
+   ----------------------------------------------------------------------- */
+p {
+  margin-bottom: 1em;
+  line-height: 1.7;
+}
+
+strong,
+b {
+  font-weight: 600;
+}
+
+/* -----------------------------------------------------------------------
+   Decorative / Utility Text Classes
+   ----------------------------------------------------------------------- */
+.anchor-text-drama {
+  font-family: var(--anchor-font-drama);
+  font-style: italic;
+  font-size: 1.3em;
+}
+
+.block {
+  display: block;
+}
+
+.anchor-text-mono {
+  font-family: var(--anchor-font-mono);
+}
+
+.anchor-text-muted {
+  opacity: 0.55;
+}
+
+/* -----------------------------------------------------------------------
+   Lists, Tables, Forms — Sensible Defaults
+   ----------------------------------------------------------------------- */
+/* Reset all lists — !important beats wp-block-library defaults */
+ul,
+ol {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Restore sensible list styles inside WordPress content areas */
+.entry-content ul,
+.entry-content ol,
+.wp-content ul,
+.wp-content ol,
+.anchor-article ul,
+.anchor-article ol,
+.anchor-text-block__content ul,
+.anchor-text-block__content ol {
+  list-style: revert !important;
+  margin: 0 0 1em 1.5rem !important;
+  padding: 0 !important;
+}
+
+.entry-content li,
+.anchor-article li,
+.anchor-text-block__content li {
+  margin-bottom: 0.5em;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  text-align: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+fieldset {
+  border: none;
+}
+
+/* -----------------------------------------------------------------------
+   Miscellaneous
+   ----------------------------------------------------------------------- */
+hr {
+  border: none;
+  height: 1px;
+  background: var(--anchor-surface-300);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
