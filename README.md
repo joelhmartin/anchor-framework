@@ -86,6 +86,21 @@ The public API is the surface documented in `docs/components.md` and `docs/hooks
 
 The [Anchor Page Assistant](https://github.com/joelhmartin/anchor-page-assistant) is a separate plugin that adds an AI-driven page-building assistant. It versions independently but releases are coordinated — major versions of the framework will name the compatible plugin range in `CHANGELOG.md`.
 
+## Build pipeline
+
+The parent theme ships minified CSS/JS in `dist/` (tracked in git). Source files live in `assets/css/utilities/` and `assets/js/`. To rebuild after editing source:
+
+```bash
+cd wp-content/themes/anchor-framework
+npm install        # first time only
+npm run build      # one-shot
+npm run watch      # rebuild on save
+```
+
+`dist/utilities.min.css` is the file WordPress enqueues. **Never hand-edit `dist/`** — your edits will be clobbered on the next build.
+
+See [docs/utilities.md](docs/utilities.md) for the full utility class reference.
+
 ## License
 
 GPL-2.0-or-later, matching WordPress.
