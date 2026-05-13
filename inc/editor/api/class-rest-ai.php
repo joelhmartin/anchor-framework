@@ -209,6 +209,7 @@ class Anchor_Editor_REST_AI {
 
         $result = Anchor_Editor_File_Writer::write_page( $slug, $contents );
         if ( is_wp_error( $result ) ) {
+            /** @var WP_Error $result */
             $code   = $result->get_error_code();
             $status = 'syntax_error' === $code ? 422 : 500;
             return new WP_REST_Response(
