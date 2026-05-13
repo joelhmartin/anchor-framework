@@ -121,8 +121,13 @@
 		var tabs = [
 			{ id: 'page',     label: 'Page' },
 			{ id: 'page-css', label: state.currentSlug + '.css' },
-			{ id: 'css',      label: state.currentCssFile },
 		];
+		// Only show the global-CSS tab when a filename has been picked.
+		// Without this guard, clicking the empty tab fetches /files/css/
+		// with no filename, which doesn't match the REST route.
+		if ( state.currentCssFile ) {
+			tabs.push( { id: 'css', label: state.currentCssFile } );
+		}
 
 		tabs.forEach( function( tab ) {
 			var btn = document.createElement( 'button' );
