@@ -272,15 +272,20 @@ class Anchor_Editor_REST_AI {
                 return rest_ensure_response( [ 'success' => true ] );
 
             case 'replace_menu':
-                $tree = $config['items'] ?? [];
-                // Clear existing.
+                // Don't claim success if a delete or insert failed mid-replace —
+                // partial state is worse than an outright failure for the caller.
+                $tree     = $config['items'] ?? [];
                 $existing = wp_get_nav_menu_items( $menu_id ) ?: [];
                 foreach ( $existing as $item ) {
-                    wp_delete_post( $item->ID, true );
+                    if ( false === wp_delete_post( $item->ID, true ) ) {
+                        return new WP_REST_Response( [ 'error' => 'Could not clear existing menu items.' ], 500 );
+                    }
                 }
-                // Insert new tree.
-                $pos = 1;
-                $this->insert_menu_tree( $menu_id, $tree, 0, $pos );
+                $pos          = 1;
+                $insert_error = $this->insert_menu_tree( $menu_id, $tree, 0, $pos );
+                if ( is_wp_error( $insert_error ) ) {
+                    return new WP_REST_Response( [ 'error' => $insert_error->get_error_message() ], 500 );
+                }
                 return rest_ensure_response( [ 'success' => true ] );
 
             default:
@@ -299,10 +304,17 @@ class Anchor_Editor_REST_AI {
                 'menu-item-type'      => 'custom',
             ];
             $new_id = wp_update_nav_menu_item( $menu_id, 0, $item_data );
-            if ( ! is_wp_error( $new_id ) && ! empty( $item['children'] ) ) {
-                $this->insert_menu_tree( $menu_id, $item['children'], $new_id, $position );
+            if ( is_wp_error( $new_id ) ) {
+                return $new_id;
+            }
+            if ( ! empty( $item['children'] ) ) {
+                $child_error = $this->insert_menu_tree( $menu_id, $item['children'], $new_id, $position );
+                if ( is_wp_error( $child_error ) ) {
+                    return $child_error;
+                }
             }
         }
+        return null;
     }
 
     /**
