@@ -1,1 +1,35 @@
-/* _borders.css — border, radius, shadow utilities. */
+/* _borders.css — border sides, radius, shadow utilities.
+   Radius values reference CSS variables for runtime customization. */
+
+:root {
+  --anchor-radius-none: 0;
+  --anchor-radius-sm:   4px;
+  --anchor-radius-md:   8px;
+  --anchor-radius-lg:   16px;
+  --anchor-radius-full: 999px;
+
+  --anchor-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --anchor-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --anchor-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* ───── Border ───── */
+.anchor-border    { border: 1px solid var(--anchor-color-rule, currentColor); }
+.anchor-border-t  { border-top: 1px solid var(--anchor-color-rule, currentColor); }
+.anchor-border-b  { border-bottom: 1px solid var(--anchor-color-rule, currentColor); }
+.anchor-border-l  { border-left: 1px solid var(--anchor-color-rule, currentColor); }
+.anchor-border-r  { border-right: 1px solid var(--anchor-color-rule, currentColor); }
+.anchor-border-0  { border: 0; }
+
+/* ───── Radius ───── */
+.anchor-rounded-none { border-radius: var(--anchor-radius-none); }
+.anchor-rounded-sm   { border-radius: var(--anchor-radius-sm); }
+.anchor-rounded-md   { border-radius: var(--anchor-radius-md); }
+.anchor-rounded-lg   { border-radius: var(--anchor-radius-lg); }
+.anchor-rounded-full { border-radius: var(--anchor-radius-full); }
+
+/* ───── Shadow ───── */
+.anchor-shadow-none { box-shadow: none; }
+.anchor-shadow-sm   { box-shadow: var(--anchor-shadow-sm); }
+.anchor-shadow-md   { box-shadow: var(--anchor-shadow-md); }
+.anchor-shadow-lg   { box-shadow: var(--anchor-shadow-lg); }
