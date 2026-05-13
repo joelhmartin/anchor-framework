@@ -256,8 +256,19 @@ class Anchor_Editor_REST_AI {
                 return rest_ensure_response( [ 'success' => true, 'item_id' => $result ] );
 
             case 'delete_item':
+                // Constrain deletion to actual items in the selected menu — a hallucinated
+                // payload from the AI must not be able to delete arbitrary posts by ID.
                 $id = absint( $config['id'] ?? 0 );
-                wp_delete_post( $id, true );
+                if ( ! $id || 'nav_menu_item' !== get_post_type( $id ) ) {
+                    return new WP_REST_Response( [ 'error' => 'Menu item not found.' ], 404 );
+                }
+                $menu_item_ids = wp_list_pluck( wp_get_nav_menu_items( $menu_id ) ?: [], 'ID' );
+                if ( ! in_array( $id, $menu_item_ids, true ) ) {
+                    return new WP_REST_Response( [ 'error' => 'Menu item not in target menu.' ], 404 );
+                }
+                if ( false === wp_delete_post( $id, true ) ) {
+                    return new WP_REST_Response( [ 'error' => 'Could not delete menu item.' ], 500 );
+                }
                 return rest_ensure_response( [ 'success' => true ] );
 
             case 'replace_menu':
