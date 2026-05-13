@@ -276,20 +276,53 @@ class Anchor_Editor_REST_AI {
                 return rest_ensure_response( [ 'success' => true ] );
 
             case 'replace_menu':
-                // Don't claim success if a delete or insert failed mid-replace —
-                // partial state is worse than an outright failure for the caller.
-                $tree     = $config['items'] ?? [];
-                $existing = wp_get_nav_menu_items( $menu_id ) ?: [];
+                // Two-phase swap: build the new tree in a temporary menu first.
+                // Only after that succeeds do we touch the live menu — so an
+                // invalid payload can't leave the user with an empty menu and
+                // a 500 error.
+                $tree = $config['items'] ?? array();
+
+                $temp_name    = '_anchor_editor_replace_' . uniqid();
+                $temp_menu_id = wp_create_nav_menu( $temp_name );
+                if ( is_wp_error( $temp_menu_id ) ) {
+                    return new WP_REST_Response(
+                        [ 'error' => 'Could not create staging menu: ' . $temp_menu_id->get_error_message() ],
+                        500
+                    );
+                }
+
+                $pos          = 1;
+                $insert_error = $this->insert_menu_tree( $temp_menu_id, $tree, 0, $pos );
+                if ( is_wp_error( $insert_error ) ) {
+                    // wp_delete_nav_menu cascades to delete the partial items.
+                    wp_delete_nav_menu( $temp_menu_id );
+                    return new WP_REST_Response(
+                        [ 'error' => $insert_error->get_error_message() ],
+                        500
+                    );
+                }
+
+                // Staging build succeeded. Clear the live menu, then move the
+                // staged items over by reassigning their nav_menu taxonomy term.
+                $existing = wp_get_nav_menu_items( $menu_id ) ?: array();
                 foreach ( $existing as $item ) {
                     if ( false === wp_delete_post( $item->ID, true ) ) {
-                        return new WP_REST_Response( [ 'error' => 'Could not clear existing menu items.' ], 500 );
+                        // Live menu is now partially cleared. Staged items are
+                        // still safe in the temp menu — surface its name so the
+                        // user can recover manually.
+                        return new WP_REST_Response(
+                            [ 'error' => 'Could not clear existing menu items. Staged items preserved in menu "' . $temp_name . '".' ],
+                            500
+                        );
                     }
                 }
-                $pos          = 1;
-                $insert_error = $this->insert_menu_tree( $menu_id, $tree, 0, $pos );
-                if ( is_wp_error( $insert_error ) ) {
-                    return new WP_REST_Response( [ 'error' => $insert_error->get_error_message() ], 500 );
+
+                $staged = wp_get_nav_menu_items( $temp_menu_id ) ?: array();
+                foreach ( $staged as $item ) {
+                    wp_set_object_terms( $item->ID, [ (int) $menu_id ], 'nav_menu' );
                 }
+
+                wp_delete_nav_menu( $temp_menu_id );
                 return rest_ensure_response( [ 'success' => true ] );
 
             default:
