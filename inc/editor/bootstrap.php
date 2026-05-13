@@ -26,4 +26,4 @@ final class Anchor_Editor {
 	}
 }
 
-// Later tasks add require_once lines here for each class as it lands.
+require_once Anchor_Editor::path() . 'inc/editor/class-file-writer.php';
