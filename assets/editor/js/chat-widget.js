@@ -43,7 +43,7 @@
                 '<button id="apa-chat-send" class="button button-primary">Send</button>' +
             '</div>' +
             '<div class="apa-chat-settings" id="apa-chat-settings" style="display:none;">' +
-                '<p>API key not configured. <a href="admin.php?page=apa-settings">Go to Settings →</a></p>' +
+                '<p>API key not configured. <a href="admin.php?page=anchor-settings">Go to Settings →</a></p>' +
             '</div>';
 
         document.body.appendChild( toggle );
