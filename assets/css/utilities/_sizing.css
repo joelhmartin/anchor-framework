@@ -1,0 +1,26 @@
+/* _sizing.css — width, height, max-width, aspect-ratio utilities. */
+
+/* ───── Width ───── */
+.anchor-w-full   { width: 100%; }
+.anchor-w-auto   { width: auto; }
+.anchor-w-prose  { max-width: 65ch; }  /* readability sweet spot */
+.anchor-w-narrow { max-width: 40rem; }
+.anchor-w-content { max-width: 80ch; }
+
+.anchor-max-w-sm  { max-width: 30rem; }   /* 480px */
+.anchor-max-w-md  { max-width: 40rem; }   /* 640px */
+.anchor-max-w-lg  { max-width: 50rem; }   /* 800px */
+.anchor-max-w-xl  { max-width: 64rem; }   /* 1024px */
+.anchor-max-w-2xl { max-width: 80rem; }   /* 1280px */
+
+/* ───── Height ───── */
+.anchor-h-full       { height: 100%; }
+.anchor-h-screen     { height: 100vh; }
+.anchor-min-h-screen { min-height: 100vh; }
+.anchor-min-h-half   { min-height: 50vh; }
+
+/* ───── Aspect ratio ───── */
+.anchor-aspect-video    { aspect-ratio: 16 / 9; }
+.anchor-aspect-square   { aspect-ratio: 1 / 1; }
+.anchor-aspect-portrait { aspect-ratio: 3 / 4; }
+.anchor-aspect-wide     { aspect-ratio: 21 / 9; }

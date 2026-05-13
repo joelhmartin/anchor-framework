@@ -1,0 +1,20 @@
+/* _responsive.css — show/hide at breakpoints, plus display utilities. */
+
+.anchor-block        { display: block; }
+.anchor-inline       { display: inline; }
+.anchor-inline-block { display: inline-block; }
+.anchor-hidden       { display: none; }
+
+/* Hide AT the breakpoint and narrower. */
+@media (max-width: 639px)  { .anchor-hide-sm { display: none !important; } }
+@media (max-width: 1023px) { .anchor-hide-md { display: none !important; } }
+@media (max-width: 1279px) { .anchor-hide-lg { display: none !important; } }
+
+/* Show ONLY at the breakpoint and narrower. */
+.anchor-show-sm,
+.anchor-show-md,
+.anchor-show-lg { display: none !important; }
+
+@media (max-width: 639px)  { .anchor-show-sm { display: revert !important; } }
+@media (max-width: 1023px) { .anchor-show-md { display: revert !important; } }
+@media (max-width: 1279px) { .anchor-show-lg { display: revert !important; } }

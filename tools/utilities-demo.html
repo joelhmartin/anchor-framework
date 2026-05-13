@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anchor Framework — Utility class demo</title>
+<link rel="stylesheet" href="../dist/utilities.min.css">
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; padding: 2rem; background: #fafaf6; color: #040541; }
+  section { margin-bottom: 4rem; }
+  h2 { border-bottom: 1px solid rgba(0,0,0,.1); padding-bottom: .5rem; }
+  .demo-box { background: rgba(0,0,0,.05); border: 1px dashed rgba(0,0,0,.2); padding: 1rem; }
+  .demo-grid-item { background: var(--anchor-color-ink); color: var(--anchor-color-ivory); padding: 1rem; text-align: center; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<h1>Anchor Framework — Utility classes</h1>
+<p>Resize the viewport to verify breakpoint behavior. All boxes use only utility classes.</p>
+
+<section>
+  <h2>Grid</h2>
+  <div class="anchor-grid anchor-grid-3 anchor-gap-md">
+    <div class="demo-grid-item">1</div><div class="demo-grid-item">2</div><div class="demo-grid-item">3</div>
+    <div class="demo-grid-item">4</div><div class="demo-grid-item">5</div><div class="demo-grid-item">6</div>
+  </div>
+  <h3 class="anchor-mt-lg">Grid 6 (collapses to 3 then 2 then 1)</h3>
+  <div class="anchor-grid anchor-grid-6 anchor-gap-sm">
+    <div class="demo-grid-item">1</div><div class="demo-grid-item">2</div><div class="demo-grid-item">3</div>
+    <div class="demo-grid-item">4</div><div class="demo-grid-item">5</div><div class="demo-grid-item">6</div>
+  </div>
+  <h3 class="anchor-mt-lg">Grid center (7 items in grid-3 — last centered)</h3>
+  <div class="anchor-grid-center anchor-grid-3 anchor-gap-md">
+    <div class="demo-grid-item">1</div><div class="demo-grid-item">2</div><div class="demo-grid-item">3</div>
+    <div class="demo-grid-item">4</div><div class="demo-grid-item">5</div><div class="demo-grid-item">6</div>
+    <div class="demo-grid-item">7</div>
+  </div>
+</section>
+
+<section>
+  <h2>Flex + reverse</h2>
+  <p>Resize to mobile (&lt;640px). The image-on-right should stack <em>above</em> the text, not below, because of <code>anchor-reverse</code>.</p>
+  <div class="anchor-flex anchor-flex-row anchor-items-center anchor-gap-md anchor-reverse">
+    <div class="anchor-stack anchor-gap-sm" style="flex: 1;">
+      <p class="anchor-eyebrow">— Eyebrow</p>
+      <h3 class="anchor-h3">Heading</h3>
+      <p class="anchor-body">Body text reads on the left at desktop; image is right of it.</p>
+    </div>
+    <div class="demo-box anchor-aspect-square" style="flex: 1;">Image stand-in</div>
+  </div>
+</section>
+
+<section>
+  <h2>Typography</h2>
+  <p class="anchor-display">Display</p>
+  <p class="anchor-h1">Heading 1</p>
+  <p class="anchor-h2">Heading 2</p>
+  <p class="anchor-h3">Heading 3</p>
+  <p class="anchor-h4">Heading 4</p>
+  <p class="anchor-body">Body — quick brown fox.</p>
+  <p class="anchor-small">Small — quick brown fox.</p>
+  <p class="anchor-eyebrow">— Eyebrow</p>
+  <p class="anchor-caption">Caption fine print.</p>
+  <p class="anchor-w-prose anchor-text-balance"><strong>w-prose + text-balance:</strong> Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+</section>
+
+<section>
+  <h2>Colors + borders</h2>
+  <div class="anchor-grid anchor-grid-4 anchor-gap-sm">
+    <div class="demo-box anchor-bg-ink anchor-text-ivory anchor-rounded-md anchor-p-md">bg-ink text-ivory rounded-md</div>
+    <div class="demo-box anchor-bg-accent anchor-text-ink anchor-rounded-lg anchor-p-md">bg-accent rounded-lg</div>
+    <div class="demo-box anchor-bg-ivory anchor-text-ink anchor-border anchor-rounded-full anchor-p-md">border rounded-full</div>
+    <div class="demo-box anchor-bg-ivory anchor-text-ink anchor-shadow-lg anchor-rounded-md anchor-p-md">shadow-lg</div>
+  </div>
+</section>
+
+<section>
+  <h2>Responsive hide/show</h2>
+  <p class="anchor-hide-sm">Visible at &geq; 640px. Hidden at mobile.</p>
+  <p class="anchor-show-sm">Visible only at mobile.</p>
+</section>
+
+<section>
+  <h2>Stack + cluster</h2>
+  <div class="anchor-stack anchor-gap-sm anchor-w-prose">
+    <p>Stacked line 1.</p><p>Stacked line 2.</p><p>Stacked line 3.</p>
+  </div>
+  <div class="anchor-cluster anchor-mt-md">
+    <span class="anchor-bg-ink anchor-text-ivory anchor-px-md anchor-py-xs anchor-rounded-full anchor-small">tag</span>
+    <span class="anchor-bg-ink anchor-text-ivory anchor-px-md anchor-py-xs anchor-rounded-full anchor-small">cluster</span>
+    <span class="anchor-bg-ink anchor-text-ivory anchor-px-md anchor-py-xs anchor-rounded-full anchor-small">wraps</span>
+  </div>
+</section>
+
+</body>
+</html>

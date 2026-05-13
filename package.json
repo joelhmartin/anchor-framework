@@ -1,0 +1,13 @@
+{
+  "name": "anchor-framework",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Anchor Framework parent theme build pipeline",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.0"
+  }
+}
