@@ -34,3 +34,4 @@ require_once Anchor_Editor::path() . 'inc/ai/class-prompt-builder.php';
 // REST controllers
 require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-ai.php';
 require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-config.php';
+require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-files.php';
