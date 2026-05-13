@@ -27,3 +27,4 @@ final class Anchor_Editor {
 }
 
 require_once Anchor_Editor::path() . 'inc/editor/class-file-writer.php';
+require_once Anchor_Editor::path() . 'inc/editor/class-config-writer.php';
