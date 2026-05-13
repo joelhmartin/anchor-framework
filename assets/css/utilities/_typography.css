@@ -1,1 +1,57 @@
-/* _typography.css — type ramp, font family, alignment, weight utilities. */
+/* _typography.css — type ramp, font family, alignment, weight, leading.
+
+   All type sizes use clamp(min, preferred, max) so they respond fluidly
+   from mobile through ultrawide without manual breakpoints. The future
+   theme settings page can override these via CSS variables. */
+
+/* ───── Type ramp ───── */
+.anchor-display  { font-size: var(--anchor-display, clamp(3rem, 8vw, 6rem));   line-height: 1.05; }
+.anchor-h1       { font-size: var(--anchor-h1, clamp(2.5rem, 5vw, 4rem));      line-height: 1.1; }
+.anchor-h2       { font-size: var(--anchor-h2, clamp(2rem, 4vw, 3rem));        line-height: 1.15; }
+.anchor-h3       { font-size: var(--anchor-h3, clamp(1.5rem, 3vw, 2rem));      line-height: 1.2; }
+.anchor-h4       { font-size: var(--anchor-h4, clamp(1.25rem, 2vw, 1.5rem));   line-height: 1.25; }
+.anchor-body     { font-size: var(--anchor-body, clamp(1rem, 1.2vw, 1.125rem)); line-height: 1.6; }
+.anchor-small    { font-size: var(--anchor-small, clamp(0.875rem, 1vw, 1rem));  line-height: 1.5; }
+.anchor-caption  { font-size: var(--anchor-caption, 0.75rem); line-height: 1.4; }
+.anchor-eyebrow {
+  font-size: var(--anchor-eyebrow, 0.75rem);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 500;
+}
+
+/* ───── Font family ───── */
+.anchor-font-heading { font-family: var(--anchor-font-heading, inherit); }
+.anchor-font-body    { font-family: var(--anchor-font-body, inherit); }
+.anchor-font-accent  { font-family: var(--anchor-font-accent, inherit); }
+
+/* ───── Alignment ───── */
+.anchor-text-left   { text-align: left; }
+.anchor-text-center { text-align: center; }
+.anchor-text-right  { text-align: right; }
+
+/* ───── Wrapping ───── */
+.anchor-text-balance { text-wrap: balance; }
+.anchor-text-pretty  { text-wrap: pretty; }
+.anchor-text-nowrap  { white-space: nowrap; }
+
+/* ───── Case & tracking ───── */
+.anchor-uppercase { text-transform: uppercase; }
+.anchor-lowercase { text-transform: lowercase; }
+.anchor-capitalize { text-transform: capitalize; }
+.anchor-tracking-tight  { letter-spacing: -0.02em; }
+.anchor-tracking-normal { letter-spacing: 0; }
+.anchor-tracking-wide   { letter-spacing: 0.08em; }
+.anchor-tracking-wider  { letter-spacing: 0.14em; }
+
+/* ───── Weight ───── */
+.anchor-weight-light    { font-weight: 300; }
+.anchor-weight-normal   { font-weight: 400; }
+.anchor-weight-medium   { font-weight: 500; }
+.anchor-weight-semibold { font-weight: 600; }
+.anchor-weight-bold     { font-weight: 700; }
+
+/* ───── Leading (line-height) ───── */
+.anchor-leading-tight   { line-height: 1.15; }
+.anchor-leading-normal  { line-height: 1.5; }
+.anchor-leading-relaxed { line-height: 1.75; }
