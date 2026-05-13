@@ -331,6 +331,20 @@ class Anchor_Editor_REST_AI {
             return new WP_REST_Response( [ 'error' => 'Post not found.' ], 404 );
         }
 
+        // Allowlist post types so a hallucinated post_id can't be used to mutate
+        // arbitrary posts (pages, attachments, etc.). Default covers the
+        // blog/event flows the editor was built for; sites can extend.
+        $allowed_types = apply_filters(
+            'anchor_editor/post_action/allowed_post_types',
+            array( 'post', 'event' )
+        );
+        if ( ! in_array( $post->post_type, $allowed_types, true ) ) {
+            return new WP_REST_Response(
+                [ 'error' => 'Invalid post type for this endpoint.' ],
+                403
+            );
+        }
+
         $update = [ 'ID' => $post_id ];
 
         if ( isset( $config['title'] ) ) {
