@@ -26,10 +26,16 @@ final class Anchor_Editor {
 	}
 }
 
+// Editor utilities
 require_once Anchor_Editor::path() . 'inc/editor/class-file-writer.php';
 require_once Anchor_Editor::path() . 'inc/editor/class-config-writer.php';
+
+// AI module
 require_once Anchor_Editor::path() . 'inc/ai/class-ai-handler.php';
 require_once Anchor_Editor::path() . 'inc/ai/class-prompt-builder.php';
+
+// Editor service classes
+require_once Anchor_Editor::path() . 'inc/editor/admin/class-config-manager.php';
 
 // REST controllers
 require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-ai.php';
@@ -38,3 +44,7 @@ require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-files.php';
 require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-history.php';
 require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-media.php';
 require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-menus.php';
+
+// Admin pages
+require_once Anchor_Editor::path() . 'inc/editor/admin/class-editor-page.php';
+require_once Anchor_Editor::path() . 'inc/editor/admin/class-settings-page.php';
