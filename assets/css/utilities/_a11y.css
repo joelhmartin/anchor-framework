@@ -8,7 +8,7 @@
   padding: 0 !important;
   margin: -1px !important;
   overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
   white-space: nowrap !important;
   border: 0 !important;
 }
@@ -20,13 +20,13 @@
   padding: revert !important;
   margin: revert !important;
   overflow: visible !important;
-  clip: auto !important;
+  clip-path: none !important;
   white-space: normal !important;
 }
 
 /* Explicit focus ring helper. Use on interactive elements that lose
    their browser default ring via reset. */
 .anchor-focus-ring:focus-visible {
-  outline: 2px solid var(--anchor-color-accent, currentColor);
+  outline: 2px solid var(--anchor-color-accent, currentcolor);
   outline-offset: 2px;
 }
