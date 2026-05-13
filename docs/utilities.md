@@ -19,10 +19,10 @@ All utilities are prefixed `anchor-`. All color/radius/size values reference CSS
 
 - `.anchor-grid` — `display: grid; gap: var(--anchor-gap-md);`
 - `.anchor-grid-{1..6}` — N columns at desktop. Mobile collapse baked in:
-  - `grid-6` → 3 cols (md) → 2 cols (sm)
-  - `grid-5` → 3 → 2
-  - `grid-4` → 2 (sm)
-  - `grid-3` / `grid-2` → 1 (sm)
+  - `grid-6` → 3 cols (md) → 1 col (sm)
+  - `grid-5` → 3 (md) → 1 (sm)
+  - `grid-4` → 2 (md) → 1 (sm)
+  - `grid-3` / `grid-2` → unchanged (md) → 1 (sm)
 - `.anchor-grid-center` — centers orphan items in the last row. Combine with `.anchor-grid-{n}`.
 
 ### Flex
