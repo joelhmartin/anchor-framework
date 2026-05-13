@@ -22,7 +22,7 @@
 .anchor-bg-accent      { background-color: var(--anchor-color-accent); }
 .anchor-bg-muted       { background-color: var(--anchor-color-muted); }
 .anchor-bg-transparent { background-color: transparent; }
-.anchor-bg-current     { background-color: currentColor; }
+.anchor-bg-current     { background-color: currentcolor; }
 
 /* ───── Text ───── */
 .anchor-text-ink     { color: var(--anchor-color-ink); }
@@ -36,4 +36,4 @@
 .anchor-border-rule-strong { border-color: var(--anchor-color-rule-strong); }
 .anchor-border-ink         { border-color: var(--anchor-color-ink); }
 .anchor-border-accent      { border-color: var(--anchor-color-accent); }
-.anchor-border-current     { border-color: currentColor; }
+.anchor-border-current     { border-color: currentcolor; }
