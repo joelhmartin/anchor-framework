@@ -32,6 +32,7 @@ $anchor_inc_files = array(
     '/inc/class-anchor-mobile-walker.php',
     '/inc/class-anchor-footer-walker.php',
     '/inc/updater.php',
+    '/inc/editor/bootstrap.php',
 );
 
 foreach ( $anchor_inc_files as $anchor_inc_file ) {
