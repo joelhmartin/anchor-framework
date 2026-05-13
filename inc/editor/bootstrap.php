@@ -51,3 +51,22 @@ require_once Anchor_Editor::path() . 'inc/editor/admin/class-settings-page.php';
 
 // Frontend chat
 require_once Anchor_Editor::path() . 'inc/editor/frontend/class-frontend-chat.php';
+
+/**
+ * Instantiate editor singletons. Each instance() call constructs the singleton
+ * and registers its WP hooks (admin_menu, rest_api_init, wp_footer, etc.).
+ */
+function anchor_editor_init() {
+	Anchor_Editor_Config_Manager::instance();
+	Anchor_AI_Handler::instance();
+	Anchor_Editor_Page::instance();
+	Anchor_Editor_Settings::instance();
+	Anchor_Editor_Frontend_Chat::instance();
+	Anchor_Editor_REST_Config::instance();
+	Anchor_Editor_REST_AI::instance();
+	Anchor_Editor_REST_Menus::instance();
+	Anchor_Editor_REST_Media::instance();
+	Anchor_Editor_REST_History::instance();
+	Anchor_Editor_REST_Files::instance();
+}
+add_action( 'after_setup_theme', 'anchor_editor_init', 20 );
