@@ -30,3 +30,6 @@ require_once Anchor_Editor::path() . 'inc/editor/class-file-writer.php';
 require_once Anchor_Editor::path() . 'inc/editor/class-config-writer.php';
 require_once Anchor_Editor::path() . 'inc/ai/class-ai-handler.php';
 require_once Anchor_Editor::path() . 'inc/ai/class-prompt-builder.php';
+
+// REST controllers
+require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-ai.php';
