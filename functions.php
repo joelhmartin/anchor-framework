@@ -191,6 +191,21 @@ if ( ! function_exists( 'anchor_enqueue_styles' ) ) {
                 $theme_version
             );
         }
+
+        // --- Utilities (built) --------------------------------------------
+        // Loaded after responsive.css so utilities take precedence over base
+        // responsive rules. Child overrides (later-enqueued) can still win.
+        // filemtime is used as the cache-buster so fresh builds are picked up
+        // immediately on disk without bumping the theme version.
+        $utilities_path = get_template_directory() . '/dist/utilities.min.css';
+        if ( file_exists( $utilities_path ) ) {
+            wp_enqueue_style(
+                'anchor-utilities',
+                get_template_directory_uri() . '/dist/utilities.min.css',
+                array( 'anchor-responsive' ),
+                filemtime( $utilities_path )
+            );
+        }
     }
 }
 add_action( 'wp_enqueue_scripts', 'anchor_enqueue_styles' );
