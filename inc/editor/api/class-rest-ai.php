@@ -192,8 +192,12 @@ class Anchor_Editor_REST_AI {
      * Write the AI-authored PHP/HTML to page-content/{slug}.php.
      */
     private function apply_file_write( $slug, $contents ) {
-        if ( '' === $slug ) {
-            return new WP_REST_Response( [ 'error' => 'No page slug on file_write.' ], 400 );
+        // Defense-in-depth: validate the slug at the REST boundary before
+        // handing it to the file writer (the writer also jails to page-content/
+        // via realpath, but rejecting bad input early surfaces clearer errors).
+        $slug = (string) $slug;
+        if ( '' === $slug || ! preg_match( '#^[A-Za-z0-9_\-/]+$#', $slug ) ) {
+            return new WP_REST_Response( [ 'error' => 'Invalid page slug on file_write.' ], 400 );
         }
         if ( '' === $contents ) {
             return new WP_REST_Response( [ 'error' => 'Empty file contents.' ], 400 );
@@ -338,6 +342,11 @@ class Anchor_Editor_REST_AI {
             'anchor_editor/post_action/allowed_post_types',
             array( 'post', 'event' )
         );
+        // A misconfigured filter callback can return non-array; coerce safely
+        // (in_array with a non-array second arg throws on PHP 8).
+        if ( ! is_array( $allowed_types ) ) {
+            $allowed_types = array( 'post', 'event' );
+        }
         if ( ! in_array( $post->post_type, $allowed_types, true ) ) {
             return new WP_REST_Response(
                 [ 'error' => 'Invalid post type for this endpoint.' ],
