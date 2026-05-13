@@ -48,3 +48,6 @@ require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-menus.php';
 // Admin pages
 require_once Anchor_Editor::path() . 'inc/editor/admin/class-editor-page.php';
 require_once Anchor_Editor::path() . 'inc/editor/admin/class-settings-page.php';
+
+// Frontend chat
+require_once Anchor_Editor::path() . 'inc/editor/frontend/class-frontend-chat.php';
