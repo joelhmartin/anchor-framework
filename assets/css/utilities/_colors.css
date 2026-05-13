@@ -1,1 +1,39 @@
-/* _colors.css — bg/text/border colors (CSS-var driven). */
+/* _colors.css — background, text, border color utilities.
+   All values reference CSS variables so the future theme settings page
+   can override them per-site without touching the utility CSS. */
+
+:root {
+  /* Defaults — children/grandchildren override via client-tokens.css
+     or the settings-page output. */
+  --anchor-color-ink:         #040541;
+  --anchor-color-ivory:       #f5f4ef;
+  --anchor-color-accent:      #e89c1f;
+  --anchor-color-muted:       #6b6a78;
+  --anchor-color-rule:        rgba(0, 0, 0, 0.08);
+  --anchor-color-rule-strong: rgba(0, 0, 0, 0.2);
+  --anchor-color-success:     #2f7d4f;
+  --anchor-color-warn:        #c97f1c;
+  --anchor-color-error:       #b2453c;
+}
+
+/* ───── Background ───── */
+.anchor-bg-ink         { background-color: var(--anchor-color-ink); }
+.anchor-bg-ivory       { background-color: var(--anchor-color-ivory); }
+.anchor-bg-accent      { background-color: var(--anchor-color-accent); }
+.anchor-bg-muted       { background-color: var(--anchor-color-muted); }
+.anchor-bg-transparent { background-color: transparent; }
+.anchor-bg-current     { background-color: currentColor; }
+
+/* ───── Text ───── */
+.anchor-text-ink     { color: var(--anchor-color-ink); }
+.anchor-text-ivory   { color: var(--anchor-color-ivory); }
+.anchor-text-accent  { color: var(--anchor-color-accent); }
+.anchor-text-muted   { color: var(--anchor-color-muted); }
+.anchor-text-inherit { color: inherit; }
+
+/* ───── Border color ───── */
+.anchor-border-rule        { border-color: var(--anchor-color-rule); }
+.anchor-border-rule-strong { border-color: var(--anchor-color-rule-strong); }
+.anchor-border-ink         { border-color: var(--anchor-color-ink); }
+.anchor-border-accent      { border-color: var(--anchor-color-accent); }
+.anchor-border-current     { border-color: currentColor; }
