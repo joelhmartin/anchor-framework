@@ -1,0 +1,494 @@
+/* Anchor Page Assistant — Frontend Chat Widget */
+
+:root {
+    --apa-bottom: 24px;
+}
+
+/* WordPress a11y helper — the Anchor theme doesn't ship .screen-reader-text,
+   so wp.media's hidden headings leak into the modal without this. */
+.screen-reader-text {
+    border: 0;
+    clip: rect(1px, 1px, 1px, 1px);
+    -webkit-clip-path: inset(50%);
+    clip-path: inset(50%);
+    height: 1px;
+    width: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute !important;
+    white-space: nowrap;
+    word-wrap: normal !important;
+}
+.screen-reader-text:focus {
+    background-color: #f0f0f1;
+    clip: auto !important;
+    -webkit-clip-path: none;
+    clip-path: none;
+    color: #2271b1;
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 700;
+    height: auto;
+    left: 5px;
+    line-height: normal;
+    padding: 15px 23px 14px;
+    text-decoration: none;
+    top: 5px;
+    width: auto;
+    z-index: 100000;
+}
+
+body button.apa-fe-toggle {
+    position: fixed;
+    bottom: var(--apa-bottom);
+    right: 24px;
+    z-index: 99999;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #fff;
+    color: #1d1a1a;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+body button.apa-fe-toggle:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+}
+
+
+.apa-fe-panel {
+    position: fixed;
+    bottom: calc(var(--apa-bottom) + 72px);
+    right: 24px;
+    z-index: 99999;
+    width: 420px;
+    max-height: 600px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(12px) scale(0.98);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+
+.apa-fe-panel.is-open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+
+/* Header */
+.apa-fe-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    background: #1d1a1a;
+    color: #fff;
+}
+
+.apa-fe-header strong {
+    font-size: 14px;
+    display: block;
+}
+
+.apa-fe-slug {
+    font-size: 11px;
+    opacity: 0.5;
+    font-family: monospace;
+}
+
+.apa-fe-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.apa-fe-admin-link {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    padding: 3px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+.apa-fe-admin-link:hover {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.apa-fe-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 22px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.apa-fe-close:hover {
+    color: #fff;
+}
+
+/* Messages */
+.apa-fe-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 320px;
+    max-height: 400px;
+    background: #fafafa;
+}
+
+.apa-fe-msg {
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.55;
+    max-width: 88%;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.apa-fe-msg--user {
+    background: #1d1a1a;
+    color: #fff;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+}
+
+.apa-fe-msg--assistant {
+    background: #fff;
+    color: #1d1a1a;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Context-captured confirmation */
+.apa-fe-msg--context {
+    background: #eef6fb;
+    color: #1d4f6e;
+    border: 1px solid #b8ddef;
+    font-size: 12px;
+}
+
+/* "Please click first" tip — no AI call, JS-generated */
+.apa-fe-msg--tip {
+    background: #fffbea;
+    color: #7a5a00;
+    border: 1px solid #ffe082;
+    font-size: 12px;
+    font-style: italic;
+}
+
+/* Input */
+.apa-fe-input-area {
+    display: flex;
+    gap: 8px;
+    padding: 14px 16px;
+    border-top: 1px solid #eee;
+    background: #fff;
+}
+
+.apa-fe-input-area textarea {
+    flex: 1;
+    resize: none;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-family: inherit;
+    line-height: 1.4;
+    outline: none;
+}
+
+.apa-fe-input-area textarea:focus {
+    border-color: #1d1a1a;
+}
+
+#apa-fe-send {
+    align-self: flex-end;
+    background: #1d1a1a;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+#apa-fe-send:hover {
+    background: #333;
+}
+
+/* Apply button */
+.apa-fe-apply {
+    display: block;
+    margin-top: 8px;
+    background: #1d1a1a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.apa-fe-apply:hover {
+    background: #333;
+}
+
+/* Input area actions (attach + browse buttons) */
+.apa-fe-input-actions {
+    display: flex;
+    gap: 2px;
+    align-self: flex-end;
+}
+
+.apa-fe-icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: none;
+    background: #f0f0f1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    transition: background 0.15s;
+}
+
+.apa-fe-icon-btn:hover {
+    background: #e0e0e1;
+    color: #1d1a1a;
+}
+
+.apa-fe-icon-btn .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+/* Uploaded image preview in chat */
+.apa-fe-uploaded {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.apa-fe-uploaded img {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.apa-fe-uploaded-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 11px;
+    min-width: 0;
+}
+
+.apa-fe-uploaded-info strong {
+    font-size: 12px;
+}
+
+.apa-fe-uploaded-info span {
+    color: #999;
+}
+
+.apa-fe-uploaded-info code {
+    font-size: 10px;
+    color: #666;
+    word-break: break-all;
+}
+
+/* Inspect mode overlay — covers the page to intercept all clicks */
+.apa-inspect-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99998;
+    cursor: crosshair;
+    display: none;
+}
+
+.apa-inspect-overlay.is-active {
+    display: block;
+}
+
+/* =======================================================================
+   INLINE EDIT MODE
+   ======================================================================= */
+
+/* Edit toggle button — positioned above chat toggle */
+body button.apa-edit-toggle {
+    position: fixed;
+    bottom: calc(var(--apa-bottom) + 68px);
+    right: 24px;
+    z-index: 99999;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #fff;
+    color: #1d1a1a;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all 0.2s;
+}
+
+body button.apa-edit-toggle:hover {
+    background: #1d1a1a;
+    color: #fff;
+    border-color: #1d1a1a;
+}
+
+body .apa-edit-mode button.apa-edit-toggle {
+    background: #2271b1;
+    color: #fff;
+    border-color: #2271b1;
+}
+
+/* Editable elements in edit mode */
+.apa-edit-mode [data-apa-editable] {
+    outline: 1px dashed rgba(34, 113, 177, 0.3);
+    outline-offset: 4px;
+    cursor: text;
+    transition: outline-color 0.15s;
+    border-radius: 2px;
+}
+
+.apa-edit-mode [data-apa-editable]:hover {
+    outline-color: rgba(34, 113, 177, 0.6);
+}
+
+.apa-editable--active {
+    outline: 2px solid #2271b1 !important;
+    outline-offset: 4px !important;
+    background: rgba(34, 113, 177, 0.03);
+}
+
+/* Prevent link navigation in edit mode */
+.apa-edit-mode a[data-apa-editable] {
+    pointer-events: auto;
+}
+
+.apa-edit-mode [contenteditable="true"] {
+    min-height: 1em;
+}
+
+/* Image targets: click-to-replace via wp.media */
+.apa-edit-mode img[data-apa-editable] {
+    cursor: pointer;
+    outline-offset: 0;
+}
+.apa-edit-mode img[data-apa-editable]:hover {
+    outline: 2px solid #2271b1;
+    outline-offset: 0;
+}
+
+/* Save bar at top */
+.apa-edit-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 99998;
+    background: #1d1a1a;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 24px;
+    transform: translateY(-100%);
+    transition: transform 0.25s ease;
+}
+
+.admin-bar .apa-edit-bar {
+    top: 32px;
+}
+
+.apa-edit-bar.is-visible {
+    transform: translateY(0);
+}
+
+.apa-edit-bar__label {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.apa-edit-bar__actions {
+    display: flex;
+    gap: 8px;
+}
+
+.apa-edit-bar__btn {
+    padding: 6px 16px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: transparent;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.apa-edit-bar__btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.apa-edit-bar__btn--primary {
+    background: #2271b1;
+    border-color: #2271b1;
+}
+
+.apa-edit-bar__btn--primary:hover {
+    background: #1a5e96;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+    .apa-fe-panel {
+        width: calc(100vw - 24px);
+        right: 12px;
+        bottom: 84px;
+        max-height: 70vh;
+    }
+
+    .apa-fe-toggle {
+        bottom: 16px;
+        right: 16px;
+    }
+}

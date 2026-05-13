@@ -1,0 +1,121 @@
+/* Anchor Page Assistant — Live Editor (Split Screen) */
+
+/* Remove WP admin padding/margin to go full-width */
+#wpcontent {
+    padding-left: 0 !important;
+}
+
+.apa-live {
+    display: grid;
+    grid-template-columns: 480px 1fr;
+    height: calc(100vh - 32px); /* minus admin bar */
+    overflow: hidden;
+}
+
+.admin-bar .apa-live {
+    height: calc(100vh - 32px);
+}
+
+/* Sidebar */
+.apa-live__sidebar {
+    display: flex;
+    flex-direction: column;
+    background: #1d2327;
+    color: #f0f0f1;
+    overflow: hidden;
+}
+
+.apa-live__sidebar-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.apa-live__sidebar-header h2 {
+    color: #fff;
+    font-size: 16px;
+    margin: 0 0 10px;
+}
+
+.apa-live__sidebar-header select {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 13px;
+    background: #2c3338;
+    color: #f0f0f1;
+    border: 1px solid #3c434a;
+    border-radius: 4px;
+}
+
+/* Config textarea */
+.apa-live__config-area {
+    flex: 1;
+    overflow: hidden;
+    padding: 0;
+}
+
+#apa-live-config {
+    width: 100%;
+    height: 100%;
+    resize: none;
+    border: none;
+    background: #23282d;
+    color: #a3d9a5;
+    font-family: 'IBM Plex Mono', 'SF Mono', 'Consolas', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    padding: 16px 20px;
+    tab-size: 2;
+    outline: none;
+    box-sizing: border-box;
+}
+
+/* Actions bar */
+.apa-live__actions {
+    padding: 12px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.apa-live__actions .button-primary {
+    background: #2271b1;
+    border-color: #2271b1;
+}
+
+#apa-live-status {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Preview area */
+.apa-live__preview {
+    display: flex;
+    flex-direction: column;
+    background: #f0f0f1;
+    overflow: hidden;
+}
+
+.apa-live__preview-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: #fff;
+    border-bottom: 1px solid #dcdcde;
+    font-size: 12px;
+    color: #666;
+}
+
+#apa-live-url {
+    font-family: monospace;
+    font-size: 11px;
+    color: #999;
+}
+
+#apa-live-iframe {
+    flex: 1;
+    width: 100%;
+    border: none;
+    background: #fff;
+}
