@@ -224,14 +224,30 @@ if ( ! function_exists( 'anchor_enqueue_scripts' ) ) {
     function anchor_enqueue_scripts() {
 
         $theme_version = wp_get_theme()->get( 'Version' );
-        $js_dir        = get_template_directory_uri() . '/assets/js/';
+        $bundle_path   = get_template_directory() . '/dist/site.min.js';
+
+        // Prefer the bundled / minified output from `npm run build`.
+        // Fall back to the un-bundled sources only when dist/ is missing
+        // (e.g. someone cloned the theme without running the build).
+        if ( file_exists( $bundle_path ) ) {
+            wp_enqueue_script(
+                'anchor-site',
+                get_template_directory_uri() . '/dist/site.min.js',
+                array(),
+                filemtime( $bundle_path ),
+                true // Load in footer.
+            );
+            return;
+        }
+
+        $js_dir = get_template_directory_uri() . '/assets/js/';
 
         wp_enqueue_script(
             'anchor-scroll-reveal',
             $js_dir . 'scroll-reveal.js',
             array(),
             $theme_version,
-            true // Load in footer.
+            true
         );
 
         wp_enqueue_script(
@@ -239,7 +255,7 @@ if ( ! function_exists( 'anchor_enqueue_scripts' ) ) {
             $js_dir . 'navigation.js',
             array(),
             $theme_version,
-            true // Load in footer.
+            true
         );
     }
 }
