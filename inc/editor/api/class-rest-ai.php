@@ -363,13 +363,20 @@ class Anchor_Editor_REST_AI {
             return new WP_REST_Response( [ 'error' => $result->get_error_message() ], 500 );
         }
 
-        // Featured image.
+        // Featured image. Surface failures so the caller can react —
+        // silently swallowing them masked update problems before.
         if ( isset( $config['featured_image_id'] ) ) {
-            $img_id = absint( $config['featured_image_id'] );
-            if ( $img_id ) {
-                set_post_thumbnail( $post_id, $img_id );
-            } else {
-                delete_post_thumbnail( $post_id );
+            $img_id    = absint( $config['featured_image_id'] );
+            $thumb_ok  = $img_id
+                ? set_post_thumbnail( $post_id, $img_id )
+                : delete_post_thumbnail( $post_id );
+            // delete_post_thumbnail returns true even when no thumbnail existed;
+            // false means a real failure to remove an existing one.
+            if ( false === $thumb_ok ) {
+                return new WP_REST_Response(
+                    [ 'error' => 'Could not update featured image.' ],
+                    500
+                );
             }
         }
 
