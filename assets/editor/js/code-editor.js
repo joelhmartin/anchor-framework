@@ -1,5 +1,5 @@
 /**
- * Anchor Page Assistant — Code Editor Panel
+ * Anchor Editor — Code Editor Panel
  *
  * Loads Monaco on demand and opens a slide-over panel to edit the
  * current page's page-content/{slug}.php file directly.

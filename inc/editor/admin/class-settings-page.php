@@ -63,7 +63,7 @@ class Anchor_Editor_Settings {
         $masked_key = $api_key ? substr( $api_key, 0, 8 ) . '...' . substr( $api_key, -4 ) : '';
         ?>
         <div class="wrap">
-            <h1>Page Assistant Settings</h1>
+            <h1>Anchor Editor Settings</h1>
             <form method="post" action="options.php">
                 <?php settings_fields( 'apa_settings' ); ?>
                 <table class="form-table">

@@ -1,5 +1,5 @@
 /**
- * Anchor Page Assistant — Inline Edit Mode
+ * Anchor Editor — Inline Edit Mode
  *
  * Enables direct text editing on the frontend.
  * - Blog/event posts: edits article content, title, excerpt

@@ -31,7 +31,7 @@ class Anchor_AI_Prompt_Builder {
             }
         }
 
-        $prompt = "You are the Anchor Page Assistant, an AI that helps build and edit WordPress pages.\n\n";
+        $prompt = "You are the Anchor Editor, an AI that helps build and edit WordPress pages.\n\n";
 
         // Architecture context
         $prompt .= "## How This System Works\n\n";
@@ -203,7 +203,7 @@ class Anchor_AI_Prompt_Builder {
      * @return string
      */
     private static function build_direct_php( $page_slug, $contents, $cm = null ) {
-        $prompt  = "You are the Anchor Page Assistant, an AI that edits WordPress pages directly as PHP/HTML files.\n\n";
+        $prompt  = "You are the Anchor Editor, an AI that edits WordPress pages directly as PHP/HTML files.\n\n";
 
         $prompt .= "## How This Works\n\n";
         $prompt .= "This page is a direct-PHP file at `page-content/{$page_slug}.php`. ";

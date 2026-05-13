@@ -1,5 +1,5 @@
 /**
- * Anchor Page Assistant — AI Chat Widget
+ * Anchor Editor — AI Chat Widget
  *
  * Chat panel that sends messages to the AI endpoint,
  * displays responses, and offers one-click "Apply" for config changes.

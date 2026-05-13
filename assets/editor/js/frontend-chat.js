@@ -1,5 +1,5 @@
 /**
- * Anchor Page Assistant — Frontend Chat
+ * Anchor Editor — Frontend Chat
  *
  * Floating chat widget on the frontend for logged-in admins.
  * Knows which page config it's on, sends AI requests, and
@@ -39,7 +39,7 @@
         var toggle = document.createElement( 'button' );
         toggle.className = 'apa-fe-toggle';
         toggle.innerHTML = '<span class="dashicons dashicons-edit-large"></span>';
-        toggle.title = 'Page Assistant';
+        toggle.title = 'Anchor Editor';
         toggle.addEventListener( 'click', togglePanel );
 
         // Panel
@@ -51,7 +51,7 @@
             '<div class="apa-fe-header">' +
                 ( data.hasPageContentFile ? '<button id="apa-fe-edit-code" class="apa-fe-admin-link" title="Edit raw PHP for this page">Edit code</button>' : '' ) +
                 '<div class="apa-fe-header-info">' +
-                    '<strong>Page Assistant</strong>' +
+                    '<strong>Anchor Editor</strong>' +
                     '<span class="apa-fe-slug">' + esc( data.pageSlug || 'unknown page' ) + '</span>' +
                 '</div>' +
                 '<div class="apa-fe-header-actions">' +

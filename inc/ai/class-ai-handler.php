@@ -58,7 +58,7 @@ class Anchor_AI_Handler {
      */
     public function chat( $message, $history = [], $page_slug = null, $config_key = null, $post_context = null, $selected_section_type = null ) {
         if ( ! $this->is_configured() ) {
-            return new WP_Error( 'no_api_key', 'API key not configured. Go to Page Assistant → Settings.' );
+            return new WP_Error( 'no_api_key', 'API key not configured. Go to Anchor → Settings.' );
         }
 
         $system = Anchor_AI_Prompt_Builder::build( $page_slug, $config_key, $post_context, $selected_section_type );

@@ -1,5 +1,5 @@
 /**
- * Anchor Page Assistant — Admin App
+ * Anchor Editor — Admin App
  *
  * Handles page list, section editor, and config management.
  * Communicates with the REST API to read/write config files.

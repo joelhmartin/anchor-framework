@@ -135,7 +135,7 @@ class Anchor_Editor_Frontend_Chat {
             'nonce'              => wp_create_nonce( 'wp_rest' ),
             'pageSlug'           => $slug,
             'pageTitle'          => wp_title( '', false ) ?: get_the_title(),
-            'adminUrl'           => admin_url( 'admin.php?page=anchor-page-assistant' ),
+            'adminUrl'           => admin_url( 'admin.php?page=anchor' ),
             'sections'           => array(),
             'postContext'        => $post_context,
             'hasPageContentFile' => $has_page_content_file,

@@ -1,5 +1,5 @@
 /**
- * Anchor Page Assistant — Live Editor (Split Screen)
+ * Anchor Editor — Live Editor (Split Screen)
  *
  * Left: JSON config editor. Right: live iframe preview.
  * Save writes the config and refreshes the iframe.

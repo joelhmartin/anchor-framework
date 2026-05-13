@@ -1,7 +1,7 @@
 <?php if ( ! defined( 'ABSPATH' ) ) exit; ?>
 <div id="apa-app" class="wrap">
     <div class="apa-header">
-        <h1>Anchor Page Assistant</h1>
+        <h1>Anchor Editor</h1>
         <span class="apa-version">v<?php echo esc_html( Anchor_Editor::VERSION ); ?></span>
     </div>
 
