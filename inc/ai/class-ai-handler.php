@@ -56,12 +56,14 @@ class Anchor_AI_Handler {
      * @param array|null  $post_context Post data for blog/event pages.
      * @return array|WP_Error
      */
-    public function chat( $message, $history = [], $page_slug = null, $config_key = null, $post_context = null, $selected_section_type = null ) {
+    public function chat( $message, $history = [], $page_slug = null, $config_key = null, $post_context = null, $selected_section_type = null, $system_override = null ) {
         if ( ! $this->is_configured() ) {
             return new WP_Error( 'no_api_key', 'API key not configured. Go to Anchor → Settings.' );
         }
 
-        $system = Anchor_AI_Prompt_Builder::build( $page_slug, $config_key, $post_context, $selected_section_type );
+        $system = $system_override !== null
+            ? $system_override
+            : Anchor_AI_Prompt_Builder::build( $page_slug, $config_key, $post_context, $selected_section_type );
 
         $provider = $this->get_provider();
         if ( 'openai' === $provider ) {
