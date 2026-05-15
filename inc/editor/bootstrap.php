@@ -37,6 +37,13 @@ require_once Anchor_Editor::path() . 'inc/editor/class-css-writer.php';
 require_once Anchor_Editor::path() . 'inc/editor/class-scaffold-service.php';
 require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-new-page.php';
 
+// Productivity polish (Phase 4C)
+require_once Anchor_Editor::path() . 'inc/editor/class-utility-registry.php';
+require_once Anchor_Editor::path() . 'inc/editor/class-page-flags.php';
+require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-utilities.php';
+require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-page-flags.php';
+require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-paste-html.php';
+
 // AI module
 require_once Anchor_Editor::path() . 'inc/ai/class-ai-handler.php';
 require_once Anchor_Editor::path() . 'inc/ai/class-prompt-builder.php';
@@ -85,6 +92,9 @@ function anchor_editor_init() {
 	Anchor_Editor_REST_Tree::instance();
 	Anchor_Editor_REST_Agent::instance();
 	Anchor_Editor_REST_NewPage::instance();
+	Anchor_Editor_REST_Utilities::instance();
+	Anchor_Editor_REST_PageFlags::instance();
+	Anchor_Editor_REST_PasteHTML::instance();
 	Anchor_Editor_IDE_Page::instance();
 }
 add_action( 'after_setup_theme', 'anchor_editor_init', 20 );
