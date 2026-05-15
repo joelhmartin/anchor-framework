@@ -50,8 +50,8 @@ class Anchor_Editor_Frontend_Chat {
     public function maybe_enqueue() {
         if ( ! $this->should_load() ) return;
 
-        $tpl_dir = get_template_directory();
-        $tpl_url = get_template_directory_uri();
+        $tpl_dir = get_stylesheet_directory();
+        $tpl_url = get_stylesheet_directory_uri();
 
         wp_enqueue_style(
             'anchor-editor-pencil',
@@ -73,8 +73,12 @@ class Anchor_Editor_Frontend_Chat {
             // Compute files-for-this-page.
             $files = [];
             $slug  = '';
-            if ( is_singular() ) {
+            if ( function_exists( 'anchor_determine_page_slug' ) ) {
+                $slug = (string) anchor_determine_page_slug();
+            } elseif ( is_singular() ) {
                 $slug = sanitize_title( get_post_field( 'post_name', get_queried_object_id() ) );
+            }
+            if ( $slug ) {
                 $page_php = trailingslashit( get_stylesheet_directory() ) . 'page-content/' . $slug . '.php';
                 if ( file_exists( $page_php ) ) {
                     $files[] = [
