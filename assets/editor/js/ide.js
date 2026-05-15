@@ -46,7 +46,7 @@ import { createAgentSession } from './agent-core.js';
     let monaco = null;
     let editor = null;
     let openFile = null;          // { path, contents, dirty }
-    let monacoLoading = false;
+    let monacoPromise = null;
 
     // ─── File tree ─────────────────────────────────────────────────
     async function loadTree() {
@@ -99,15 +99,8 @@ import { createAgentSession } from './agent-core.js';
     // ─── Monaco lifecycle ──────────────────────────────────────────
     function ensureMonaco() {
         if (monaco) return Promise.resolve(monaco);
-        if (monacoLoading) {
-            return new Promise(resolve => {
-                const iv = setInterval(() => {
-                    if (monaco) { clearInterval(iv); resolve(monaco); }
-                }, 50);
-            });
-        }
-        monacoLoading = true;
-        return new Promise((resolve, reject) => {
+        if (monacoPromise) return monacoPromise;
+        monacoPromise = new Promise((resolve, reject) => {
             const loader = document.createElement('script');
             loader.src = cfg.monacoVs + '/loader.min.js';
             loader.onload = () => {
@@ -115,13 +108,16 @@ import { createAgentSession } from './agent-core.js';
                 require.config({ paths: { vs: cfg.monacoVs } });
                 require(['vs/editor/editor.main'], () => {
                     monaco = window.monaco;
-                    monacoLoading = false;
                     resolve(monaco);
                 });
             };
-            loader.onerror = () => { monacoLoading = false; reject(new Error('Monaco loader failed')); };
+            loader.onerror = () => {
+                monacoPromise = null; // allow retry
+                reject(new Error('Monaco loader failed'));
+            };
             document.head.appendChild(loader);
         });
+        return monacoPromise;
     }
 
     async function openFileInEditor(node) {
@@ -166,23 +162,28 @@ import { createAgentSession } from './agent-core.js';
         return m ? m[1] : '';
     }
 
-    document.getElementById('anchor-ide-save').addEventListener('click', () => {
+    document.getElementById('anchor-ide-save').addEventListener('click', async () => {
         // Save via existing /files/page/{slug} POST endpoint (Phase 1).
         if (!openFile || !openFile.writable) return;
         const slug = slugFromPath(openFile.path);
         if (!slug) { alert('Manual save only supports page-content/*.php in Phase 4A.'); return; }
-        fetch(cfg.restBase + 'files/page/' + encodeURIComponent(slug), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': cfg.nonce },
-            body: JSON.stringify({ contents: editor.getValue() }),
-        })
-            .then(r => r.json())
-            .then(d => {
-                if (d.success === false || d.error) { alert('Save failed: ' + (d.error || 'unknown')); return; }
-                openFile.contents = editor.getValue();
-                openFile.dirty = false;
-                document.querySelector('.anchor-ide-editor-dirty').hidden = true;
+        try {
+            const r = await fetch(cfg.restBase + 'files/page/' + encodeURIComponent(slug), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': cfg.nonce },
+                body: JSON.stringify({ contents: editor.getValue() }),
             });
+            const d = await r.json();
+            if (!r.ok || d.error || d.success === false) {
+                alert('Save failed: ' + (d.error || r.status));
+                return;
+            }
+            openFile.contents = editor.getValue();
+            openFile.dirty = false;
+            document.querySelector('.anchor-ide-editor-dirty').hidden = true;
+        } catch (err) {
+            alert('Save failed: ' + err.message);
+        }
     });
 
     document.addEventListener('keydown', e => {
