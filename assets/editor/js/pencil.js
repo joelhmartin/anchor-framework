@@ -69,6 +69,10 @@ import { createAgentSession } from './agent-core.js';
                 headers: { 'X-WP-Nonce': cfg.nonce },
             });
             const data = await r.json();
+            if (!r.ok || data.error) {
+                v.querySelector('pre').textContent = 'Error: ' + (data.error || r.status);
+                return;
+            }
             v.querySelector('pre').textContent = data.contents || '(empty)';
         } catch (err) {
             v.querySelector('pre').textContent = 'Error: ' + err.message;
