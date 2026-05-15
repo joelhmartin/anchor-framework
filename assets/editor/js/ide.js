@@ -394,6 +394,11 @@ import { createPreview } from './preview.js';
         const template = document.getElementById('anchor-new-page-template').value;
         const slug = document.getElementById('anchor-new-page-slug').value.trim();
         const errEl = document.getElementById('anchor-new-page-error');
+        if (!template) {
+            errEl.hidden = false;
+            errEl.textContent = 'Choose a template.';
+            return;
+        }
         if (!slug || !/^[a-z0-9_\-/]+$/.test(slug)) {
             errEl.hidden = false;
             errEl.textContent = 'Slug must be lowercase letters, digits, dash, underscore, or slash.';
