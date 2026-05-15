@@ -54,22 +54,11 @@ class Anchor_Editor_Page {
 
     public function enqueue_assets( $hook ) {
         $is_main = ( 'toplevel_page_anchor' === $hook );
-        $is_live = ( 'anchor_page_anchor-live-editor' === $hook );
 
-        if ( ! $is_main && ! $is_live ) return;
-
-        // Live editor gets its own minimal assets.
-        if ( $is_live ) {
-            wp_enqueue_style( 'anchor-editor-live-editor', Anchor_Editor::url() . 'assets/editor/css/live-editor.css', [], Anchor_Editor::VERSION );
-            wp_enqueue_script( 'anchor-editor-live-editor', Anchor_Editor::url() . 'assets/editor/js/live-editor.js', [], Anchor_Editor::VERSION, true );
-            wp_localize_script( 'anchor-editor-live-editor', 'apaLive', [
-                'restBase' => rest_url( 'anchor-assistant/v1/' ),
-                'nonce'    => wp_create_nonce( 'wp_rest' ),
-                'siteUrl'  => home_url( '/' ),
-                'pages'    => Anchor_Editor_Config_Manager::instance()->list_pages(),
-            ] );
-            return;
-        }
+        // Note: the Live Editor screen (anchor_page_anchor-live-editor) has
+        // its own enqueue handler in Anchor_Editor_IDE_Page. We deliberately
+        // do not enqueue anything for that hook here.
+        if ( ! $is_main ) return;
 
         wp_enqueue_style(
             'anchor-editor-admin',
@@ -82,14 +71,6 @@ class Anchor_Editor_Page {
             'anchor-editor-admin',
             Anchor_Editor::url() . 'assets/editor/js/admin-app.js',
             [],
-            Anchor_Editor::VERSION,
-            true
-        );
-
-        wp_enqueue_script(
-            'anchor-editor-chat',
-            Anchor_Editor::url() . 'assets/editor/js/chat-widget.js',
-            [ 'anchor-editor-admin' ],
             Anchor_Editor::VERSION,
             true
         );

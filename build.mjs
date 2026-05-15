@@ -14,16 +14,37 @@ const sharedCSS = {
 };
 
 const targets = [
-  // Utilities entry — imports all _*.css partials.
+  // Existing CSS — utilities
   {
     entryPoints: ['assets/css/utilities.css'],
     outfile: 'dist/utilities.min.css',
     ...sharedCSS,
   },
-  // Site JS — currently navigation.js + scroll-reveal.js. Bundles into one file.
+
+  // Existing JS — site
   {
     entryPoints: ['assets/js/site.js'],
     outfile: 'dist/site.min.js',
+    bundle: true,
+    minify: true,
+    format: 'iife',
+    target: ['chrome90', 'firefox88', 'safari14'],
+  },
+
+  // NEW — admin IDE bundle (Phase 4A)
+  {
+    entryPoints: ['assets/editor/js/ide.js'],
+    outfile: 'dist/ide.min.js',
+    bundle: true,
+    minify: true,
+    format: 'iife',
+    target: ['chrome90', 'firefox88', 'safari14'],
+  },
+
+  // NEW — front-end pencil overlay bundle (Phase 4A)
+  {
+    entryPoints: ['assets/editor/js/pencil.js'],
+    outfile: 'dist/pencil.min.js',
     bundle: true,
     minify: true,
     format: 'iife',

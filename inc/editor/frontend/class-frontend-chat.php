@@ -50,97 +50,58 @@ class Anchor_Editor_Frontend_Chat {
     public function maybe_enqueue() {
         if ( ! $this->should_load() ) return;
 
+        $tpl_dir = get_stylesheet_directory();
+        $tpl_url = get_stylesheet_directory_uri();
+
         wp_enqueue_style(
-            'anchor-editor-frontend-chat',
-            Anchor_Editor::url() . 'assets/editor/css/frontend-chat.css',
+            'anchor-editor-pencil',
+            $tpl_url . '/assets/editor/css/pencil.css',
             [],
-            Anchor_Editor::VERSION
+            file_exists( $tpl_dir . '/assets/editor/css/pencil.css' ) ? filemtime( $tpl_dir . '/assets/editor/css/pencil.css' ) : '1.0.0'
         );
 
-        wp_enqueue_style(
-            'anchor-editor-code-editor',
-            Anchor_Editor::url() . 'assets/editor/css/code-editor.css',
-            [ 'anchor-editor-frontend-chat' ],
-            Anchor_Editor::VERSION
-        );
+        $bundle_rel = '/dist/pencil.min.js';
+        if ( file_exists( $tpl_dir . $bundle_rel ) ) {
+            wp_enqueue_script(
+                'anchor-editor-pencil',
+                $tpl_url . $bundle_rel,
+                [],
+                filemtime( $tpl_dir . $bundle_rel ),
+                true
+            );
 
-        wp_enqueue_style( 'dashicons' );
-
-        wp_enqueue_media();
-
-        wp_enqueue_script(
-            'anchor-editor-frontend-chat',
-            Anchor_Editor::url() . 'assets/editor/js/frontend-chat.js',
-            [ 'jquery', 'media-views' ],
-            Anchor_Editor::VERSION,
-            true
-        );
-
-        wp_enqueue_script(
-            'anchor-editor-code-editor',
-            Anchor_Editor::url() . 'assets/editor/js/code-editor.js',
-            [ 'anchor-editor-frontend-chat' ],
-            Anchor_Editor::VERSION,
-            true
-        );
-
-        wp_enqueue_script(
-            'anchor-editor-inline-edit',
-            Anchor_Editor::url() . 'assets/editor/js/inline-edit.js',
-            [ 'anchor-editor-frontend-chat' ],
-            Anchor_Editor::VERSION,
-            true
-        );
-
-        // Detect if we're on a single post/event (content-editable via WP REST API)
-        $post_context = null;
-        if ( is_singular( [ 'post', 'anchor_event' ] ) ) {
-            $post = get_queried_object();
-            $thumb_id  = get_post_thumbnail_id( $post->ID );
-            $thumb_url = $thumb_id ? wp_get_attachment_url( $thumb_id ) : '';
-
-            $post_context = [
-                'id'              => $post->ID,
-                'type'            => $post->post_type,
-                'title'           => $post->post_title,
-                'content'         => $post->post_content,
-                'excerpt'         => $post->post_excerpt,
-                'featured_image'  => $thumb_url,
-                'featured_image_id' => $thumb_id ?: null,
-                'edit_url'        => get_edit_post_link( $post->ID, 'raw' ),
-            ];
-
-            // Yoast SEO meta (if Yoast is active).
-            if ( defined( 'WPSEO_VERSION' ) ) {
-                $post_context['seo'] = [
-                    'title'       => get_post_meta( $post->ID, '_yoast_wpseo_title', true ),
-                    'description' => get_post_meta( $post->ID, '_yoast_wpseo_metadesc', true ),
-                    'focus_kw'    => get_post_meta( $post->ID, '_yoast_wpseo_focuskw', true ),
-                    'canonical'   => get_post_meta( $post->ID, '_yoast_wpseo_canonical', true ),
-                    'og_title'    => get_post_meta( $post->ID, '_yoast_wpseo_opengraph-title', true ),
-                    'og_desc'     => get_post_meta( $post->ID, '_yoast_wpseo_opengraph-description', true ),
-                ];
+            // Compute files-for-this-page.
+            $files = [];
+            $slug  = '';
+            if ( function_exists( 'anchor_determine_page_slug' ) ) {
+                $slug = (string) anchor_determine_page_slug();
+            } elseif ( is_singular() ) {
+                $slug = sanitize_title( get_post_field( 'post_name', get_queried_object_id() ) );
             }
-        }
+            if ( $slug ) {
+                $page_php = trailingslashit( get_stylesheet_directory() ) . 'page-content/' . $slug . '.php';
+                if ( file_exists( $page_php ) ) {
+                    $files[] = [
+                        'label' => $slug . '.php',
+                        'path'  => 'child-theme/page-content/' . $slug . '.php',
+                    ];
+                }
+                $page_css = trailingslashit( get_stylesheet_directory() ) . 'assets/css/pages/' . $slug . '.css';
+                if ( file_exists( $page_css ) ) {
+                    $files[] = [
+                        'label' => $slug . '.css',
+                        'path'  => 'child-theme/assets/css/pages/' . $slug . '.css',
+                    ];
+                }
+            }
 
-        $slug                  = $this->get_current_slug() ?: '';
-        $has_page_content_file = false;
-        if ( $slug && function_exists( 'anchor_get_page_content_path' ) ) {
-            $has_page_content_file = '' !== anchor_get_page_content_path( $slug );
+            wp_localize_script( 'anchor-editor-pencil', 'anchorPencil', [
+                'restBase'        => rest_url( 'anchor-assistant/v1/' ),
+                'nonce'           => wp_create_nonce( 'wp_rest' ),
+                'files'           => $files,
+                'currentPageSlug' => $slug,
+            ] );
         }
-
-        wp_localize_script( 'anchor-editor-frontend-chat', 'apaFrontend', [
-            'restBase'           => rest_url( 'anchor-assistant/v1/' ),
-            'wpRestBase'         => rest_url( 'wp/v2/' ),
-            'nonce'              => wp_create_nonce( 'wp_rest' ),
-            'pageSlug'           => $slug,
-            'pageTitle'          => wp_title( '', false ) ?: get_the_title(),
-            'adminUrl'           => admin_url( 'admin.php?page=anchor' ),
-            'sections'           => array(),
-            'postContext'        => $post_context,
-            'hasPageContentFile' => $has_page_content_file,
-            'pageContentPath'    => $has_page_content_file ? ( 'page-content/' . $slug . '.php' ) : '',
-        ] );
     }
 
     public function maybe_render() {
