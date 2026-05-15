@@ -54,11 +54,25 @@ class Anchor_Editor_Scaffold_Service {
 		$template_key = (string) $template_key;
 		$slug         = (string) $slug;
 
+		// Restrict template_key to filesystem-safe identifier characters before
+		// using it in any path. Block traversal.
+		if ( ! preg_match( '#^[A-Za-z0-9_\-]+$#', $template_key ) ) {
+			return new WP_Error( 'invalid_template', 'Invalid template key.' );
+		}
+
 		if ( ! preg_match( '#^[A-Za-z0-9_\-/]+$#', $slug ) ) {
 			return new WP_Error( 'invalid_slug', 'Invalid slug. Use letters, digits, dash, underscore, slash.' );
 		}
-		$scaffold_path = trailingslashit( get_template_directory() ) . 'templates/page-scaffolds/' . $template_key . '.php';
-		if ( ! is_file( $scaffold_path ) ) {
+		$scaffolds_root = trailingslashit( get_template_directory() ) . 'templates/page-scaffolds';
+		$scaffold_path  = $scaffolds_root . '/' . $template_key . '.php';
+
+		// Defense-in-depth: realpath must resolve inside the scaffolds root.
+		$real_root = realpath( $scaffolds_root );
+		$real_path = realpath( $scaffold_path );
+		if ( $real_root === false || $real_path === false || strpos( $real_path, $real_root . DIRECTORY_SEPARATOR ) !== 0 ) {
+			return new WP_Error( 'unknown_template', "Unknown scaffold template: {$template_key}" );
+		}
+		if ( ! is_file( $real_path ) ) {
 			return new WP_Error( 'unknown_template', "Unknown scaffold template: {$template_key}" );
 		}
 
@@ -68,7 +82,7 @@ class Anchor_Editor_Scaffold_Service {
 			return new WP_Error( 'exists', "Page already exists at {$slug}" );
 		}
 
-		$contents = file_get_contents( $scaffold_path );
+		$contents = file_get_contents( $real_path );
 		if ( false === $contents ) {
 			return new WP_Error( 'read_failed', 'Could not read scaffold file.' );
 		}
