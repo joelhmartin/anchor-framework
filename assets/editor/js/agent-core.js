@@ -17,12 +17,14 @@ const ACTION_VERBS = /\b(?:build|create|update|edit|fix|add|remove|change|delete
 export function createAgentSession({ restBase, nonce }) {
     const bus = new EventTarget();
     let state = { plan: null, planId: null, busy: false };
+    let history = []; // free-form chat history (user/assistant turns)
 
     function emit(name, detail) {
         bus.dispatchEvent(new CustomEvent(name, { detail }));
     }
 
     async function send(message, context = {}) {
+        if (!message || typeof message !== 'string' || !message.trim()) return;
         if (state.busy) return;
         state.busy = true;
         emit('message', { role: 'user', text: message });
@@ -52,13 +54,20 @@ export function createAgentSession({ restBase, nonce }) {
                 const r = await fetch(restBase + 'ai/chat', {
                     method: 'POST',
                     headers: jsonHeaders(),
-                    body: JSON.stringify({ message }),
+                    body: JSON.stringify({
+                        message,
+                        history: history.slice(-10),
+                        page_slug: context.current_page_slug || '',
+                    }),
                 });
                 const data = await r.json();
                 if (!r.ok) {
                     emit('message', { role: 'agent', text: 'Error: ' + (data.error || r.status) });
                 } else {
-                    emit('message', { role: 'agent', text: stripJsonFences(data.reply || '') });
+                    const reply = stripJsonFences(data.reply || '');
+                    history.push({ role: 'user', content: message });
+                    history.push({ role: 'assistant', content: reply });
+                    emit('message', { role: 'agent', text: reply });
                 }
             } catch (err) {
                 emit('message', { role: 'agent', text: 'Error: ' + err.message });
