@@ -234,3 +234,96 @@
     color: #666;
     font-size: 13px;
 }
+
+/* ── Utility palette ── */
+.anchor-utility-palette {
+    position: fixed;
+    inset: 0;
+    z-index: 100001;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 10vh;
+}
+.anchor-utility-palette[hidden] { display: none; }
+.anchor-utility-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+}
+.anchor-utility-panel {
+    position: relative;
+    width: 540px;
+    max-width: 90vw;
+    max-height: 70vh;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.anchor-utility-search {
+    padding: 12px 16px;
+    font-size: 14px;
+    border: 0;
+    border-bottom: 1px solid #eee;
+    outline: none;
+}
+.anchor-utility-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow-y: auto;
+    flex: 1;
+}
+.anchor-utility-family {
+    background: #f5f5f5;
+    color: #555;
+    padding: 4px 16px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.anchor-utility-row {
+    display: grid;
+    grid-template-columns: 200px 1fr auto auto;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-bottom: 1px solid #f5f5f5;
+}
+.anchor-utility-row:hover { background: #fafafa; }
+.anchor-utility-class { font-family: monospace; font-size: 12px; color: #2e7d32; }
+.anchor-utility-desc { font-size: 12px; color: #666; }
+.anchor-utility-copy, .anchor-utility-insert {
+    font-size: 11px;
+    padding: 2px 8px;
+}
+
+/* ── Paste-section modal ── */
+.anchor-paste-modal { width: 520px; max-width: 95vw; }
+.anchor-paste-modal textarea.anchor-paste-html {
+    font-family: monospace;
+    font-size: 12px;
+    width: 100%;
+    min-height: 200px;
+}
+.anchor-paste-target {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin: 0;
+}
+.anchor-paste-target legend { padding: 0 6px; font-size: 12px; }
+.anchor-paste-target label { display: block; padding: 2px 0; font-size: 13px; }
+
+/* ── Header/footer flag checkboxes ── */
+.anchor-ide-flag {
+    font-size: 12px;
+    color: #ccc;
+    margin: 0 4px;
+    cursor: pointer;
+}
+.anchor-ide-flag input { vertical-align: middle; }
+.anchor-ide-flag input:disabled { opacity: 0.4; cursor: not-allowed; }
