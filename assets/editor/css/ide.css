@@ -140,3 +140,97 @@
 .anchor-step-result.is-success { background: #e8f5e9; color: #2e7d32; }
 .anchor-step-result.is-failure { background: #ffebee; color: #c62828; }
 .anchor-step-result.is-skipped { background: #eceff1; color: #607d8b; }
+
+/* ── + New Page button ── */
+.anchor-ide-new-page-btn {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+/* ── Modal ── */
+.anchor-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.anchor-modal[hidden] { display: none; }
+.anchor-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+}
+.anchor-modal-panel {
+    position: relative;
+    background: #fff;
+    border-radius: 6px;
+    padding: 20px 24px;
+    width: 360px;
+    max-width: 90vw;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.anchor-modal-title { margin: 0 0 4px; font-size: 16px; }
+.anchor-modal-panel label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+}
+.anchor-modal-panel select,
+.anchor-modal-panel input[type="text"] {
+    padding: 6px 8px;
+    font-size: 13px;
+}
+.anchor-modal-target {
+    font-size: 12px;
+    color: #666;
+    margin: 0;
+}
+.anchor-modal-target code {
+    background: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+.anchor-modal-error {
+    background: #ffebee;
+    color: #c62828;
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin: 0;
+}
+.anchor-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* ── Preview pane ── */
+.anchor-ide-preview {
+    display: none;
+    flex: 0 0 40%;
+    border-top: 1px solid #333;
+    background: #fff;
+    position: relative;
+}
+.anchor-ide-editor.anchor-ide-preview-on .anchor-ide-preview {
+    display: block;
+}
+.anchor-ide-editor.anchor-ide-preview-on .anchor-ide-editor-host {
+    flex: 1 1 60%;
+}
+.anchor-ide-preview-iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+.anchor-ide-preview-placeholder {
+    padding: 20px;
+    color: #666;
+    font-size: 13px;
+}
