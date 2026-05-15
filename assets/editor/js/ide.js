@@ -7,6 +7,8 @@
 
 import { createAgentSession } from './agent-core.js';
 import { createPreview } from './preview.js';
+import { createUtilityPalette } from './utility-palette.js';
+import { createPasteSection } from './paste-section.js';
 
 (function () {
     if (typeof window.anchorIDE === 'undefined') return;
@@ -28,6 +30,10 @@ import { createPreview } from './preview.js';
                     <span class="anchor-ide-editor-dirty" hidden>●</span>
                     <button class="button" id="anchor-ide-save" disabled>Save</button>
                     <button class="button" id="anchor-ide-preview-toggle" type="button" aria-pressed="false">Preview off</button>
+                    <button class="button" id="anchor-ide-palette" type="button">Utility classes (⌘K)</button>
+                    <button class="button" id="anchor-ide-paste" type="button">Paste section</button>
+                    <label class="anchor-ide-flag"><input type="checkbox" id="anchor-ide-no-header" disabled /> no header</label>
+                    <label class="anchor-ide-flag"><input type="checkbox" id="anchor-ide-no-footer" disabled /> no footer</label>
                 </div>
                 <div class="anchor-ide-editor-host" id="anchor-ide-editor-host"></div>
                 <div class="anchor-ide-preview" id="anchor-ide-preview"></div>
@@ -104,6 +110,78 @@ import { createPreview } from './preview.js';
         btn.textContent = previewVisible ? 'Preview on' : 'Preview off';
         btn.setAttribute('aria-pressed', previewVisible ? 'true' : 'false');
     }
+
+    // ─── Utility palette + paste-section ───────────────────────────
+    const palette = createUtilityPalette({
+        restBase: cfg.restBase,
+        nonce: cfg.nonce,
+        getMonacoEditor: () => editor,
+    });
+    const paster = createPasteSection({
+        restBase: cfg.restBase,
+        nonce: cfg.nonce,
+        getOpenFile: () => openFile ? { path: openFile.path, slug: slugFromPath(openFile.path) } : null,
+        onSuccess: () => { loadTree(); if (previewVisible && openFile) preview.reload(); },
+    });
+
+    document.getElementById('anchor-ide-palette').addEventListener('click', () => palette.toggle());
+    document.getElementById('anchor-ide-paste').addEventListener('click', () => paster.open());
+    document.addEventListener('keydown', e => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            palette.toggle();
+        }
+    });
+
+    // ─── Header/footer flag checkboxes ─────────────────────────────
+    const noHeaderEl = document.getElementById('anchor-ide-no-header');
+    const noFooterEl = document.getElementById('anchor-ide-no-footer');
+
+    async function loadPageFlags(slug) {
+        if (!slug) {
+            noHeaderEl.checked = false;
+            noFooterEl.checked = false;
+            noHeaderEl.disabled = true;
+            noFooterEl.disabled = true;
+            return;
+        }
+        try {
+            const r = await fetch(cfg.restBase + 'editor/page-flags/' + encodeURIComponent(slug), {
+                headers: { 'X-WP-Nonce': cfg.nonce },
+            });
+            const f = await r.json();
+            noHeaderEl.checked = !!f.no_header;
+            noFooterEl.checked = !!f.no_footer;
+            noHeaderEl.disabled = false;
+            noFooterEl.disabled = false;
+        } catch (_) {
+            noHeaderEl.disabled = true;
+            noFooterEl.disabled = true;
+        }
+    }
+
+    async function savePageFlags() {
+        if (!openFile) return;
+        const slug = slugFromPath(openFile.path);
+        if (!slug) return;
+        try {
+            await fetch(cfg.restBase + 'editor/page-flags/' + encodeURIComponent(slug), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': cfg.nonce },
+                body: JSON.stringify({ no_header: noHeaderEl.checked, no_footer: noFooterEl.checked }),
+            });
+            // Reload the file in Monaco to pick up the marker write.
+            openFileInEditor({
+                path: openFile.path,
+                label: openFile.path.split('/').pop(),
+                type: 'file',
+                ext: openFile.ext,
+                writable: openFile.writable,
+            });
+        } catch (_) {}
+    }
+    noHeaderEl.addEventListener('change', savePageFlags);
+    noFooterEl.addEventListener('change', savePageFlags);
 
     // ─── File tree ─────────────────────────────────────────────────
     async function loadTree() {
@@ -210,6 +288,7 @@ import { createPreview } from './preview.js';
             readOnly: !node.writable,
         });
         openFile = { path: node.path, contents, dirty: false, ext: node.ext, writable: node.writable };
+        loadPageFlags(slugFromPath(node.path));
         if (previewVisible) preview.loadFile(node.path);
         document.querySelector('.anchor-ide-editor-path').textContent = node.path;
         document.getElementById('anchor-ide-save').disabled = !node.writable;
