@@ -54,6 +54,7 @@ class Anchor_AI_Plan_Builder {
 
 		$prompt  = "You are the Anchor Editor agent. You help a WordPress site author edit their site by generating a JSON plan that is then executed step-by-step.\n\n";
 		$prompt .= "Available tools:\n{$tools_s}\n";
+		$prompt .= "Tip: when the user asks for a brand-new page, prefer new_page_from_template over a raw write_file. The scaffolds provide a known-good starting layout using utility classes; the user can iterate from there.\n\n";
 		$prompt .= "Allowed write roots (you can write here):\n";
 		$prompt .= "  - child-theme/page-content/{slug}.php\n";
 		$prompt .= "  - child-theme/assets/css/*.css\n";

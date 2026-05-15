@@ -33,6 +33,10 @@ require_once Anchor_Editor::path() . 'inc/editor/class-config-writer.php';
 // New writers (Phase 4A)
 require_once Anchor_Editor::path() . 'inc/editor/class-css-writer.php';
 
+// Authoring flows (Phase 4B)
+require_once Anchor_Editor::path() . 'inc/editor/class-scaffold-service.php';
+require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-new-page.php';
+
 // AI module
 require_once Anchor_Editor::path() . 'inc/ai/class-ai-handler.php';
 require_once Anchor_Editor::path() . 'inc/ai/class-prompt-builder.php';
@@ -80,6 +84,7 @@ function anchor_editor_init() {
 	Anchor_Editor_REST_Files::instance();
 	Anchor_Editor_REST_Tree::instance();
 	Anchor_Editor_REST_Agent::instance();
+	Anchor_Editor_REST_NewPage::instance();
 	Anchor_Editor_IDE_Page::instance();
 }
 add_action( 'after_setup_theme', 'anchor_editor_init', 20 );

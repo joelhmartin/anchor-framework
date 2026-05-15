@@ -6,6 +6,7 @@
  */
 
 import { createAgentSession } from './agent-core.js';
+import { createPreview } from './preview.js';
 
 (function () {
     if (typeof window.anchorIDE === 'undefined') return;
@@ -17,14 +18,19 @@ import { createAgentSession } from './agent-core.js';
     // Build the static three-panel scaffold.
     host.innerHTML = `
         <div class="anchor-ide-root">
-            <div class="anchor-ide-tree" id="anchor-ide-tree"><p>Loading tree…</p></div>
+            <div class="anchor-ide-tree">
+                <button class="button button-primary anchor-ide-new-page-btn" id="anchor-ide-new-page" type="button">+ New page</button>
+                <div id="anchor-ide-tree-list"><p>Loading tree…</p></div>
+            </div>
             <div class="anchor-ide-editor">
                 <div class="anchor-ide-editor-bar">
                     <span class="anchor-ide-editor-path">— no file open —</span>
                     <span class="anchor-ide-editor-dirty" hidden>●</span>
                     <button class="button" id="anchor-ide-save" disabled>Save</button>
+                    <button class="button" id="anchor-ide-preview-toggle" type="button" aria-pressed="false">Preview off</button>
                 </div>
                 <div class="anchor-ide-editor-host" id="anchor-ide-editor-host"></div>
+                <div class="anchor-ide-preview" id="anchor-ide-preview"></div>
             </div>
             <div class="anchor-ide-chat">
                 <div class="anchor-ide-chat-header">
@@ -39,6 +45,32 @@ import { createAgentSession } from './agent-core.js';
             </div>
         </div>
     `;
+    const modal = document.createElement('div');
+    modal.className = 'anchor-modal';
+    modal.id = 'anchor-new-page-modal';
+    modal.hidden = true;
+    modal.innerHTML = `
+        <div class="anchor-modal-backdrop"></div>
+        <div class="anchor-modal-panel">
+            <h2 class="anchor-modal-title">New page from template</h2>
+            <label>
+                Template
+                <select id="anchor-new-page-template"></select>
+            </label>
+            <label>
+                Slug
+                <input type="text" id="anchor-new-page-slug" placeholder="e.g. pricing or services/team" />
+            </label>
+            <p class="anchor-modal-target"><code id="anchor-new-page-target">child-theme/page-content/{slug}.php</code></p>
+            <p class="anchor-modal-error" id="anchor-new-page-error" hidden></p>
+            <div class="anchor-modal-actions">
+                <button type="button" class="button" id="anchor-new-page-cancel">Cancel</button>
+                <button type="button" class="button button-primary" id="anchor-new-page-create">Create</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
     host.removeAttribute('data-loading');
 
     // ─── State ─────────────────────────────────────────────────────
@@ -48,9 +80,34 @@ import { createAgentSession } from './agent-core.js';
     let openFile = null;          // { path, contents, dirty }
     let monacoPromise = null;
 
+    // ─── Preview ───────────────────────────────────────────────────
+    const preview = createPreview({
+        container: document.getElementById('anchor-ide-preview'),
+        restBase: cfg.restBase,
+        nonce: cfg.nonce,
+        homeUrl: cfg.homeUrl,
+    });
+    let previewVisible = localStorage.getItem('anchorIdePreview') === '1';
+    preview.setVisible(previewVisible);
+    updatePreviewToggle();
+
+    document.getElementById('anchor-ide-preview-toggle').addEventListener('click', () => {
+        previewVisible = !previewVisible;
+        localStorage.setItem('anchorIdePreview', previewVisible ? '1' : '0');
+        preview.setVisible(previewVisible);
+        if (previewVisible && openFile) preview.loadFile(openFile.path);
+        updatePreviewToggle();
+    });
+
+    function updatePreviewToggle() {
+        const btn = document.getElementById('anchor-ide-preview-toggle');
+        btn.textContent = previewVisible ? 'Preview on' : 'Preview off';
+        btn.setAttribute('aria-pressed', previewVisible ? 'true' : 'false');
+    }
+
     // ─── File tree ─────────────────────────────────────────────────
     async function loadTree() {
-        const treeEl = document.getElementById('anchor-ide-tree');
+        const treeEl = document.getElementById('anchor-ide-tree-list');
         try {
             const r = await fetch(cfg.restBase + 'files/tree', {
                 headers: { 'X-WP-Nonce': cfg.nonce },
@@ -62,6 +119,7 @@ import { createAgentSession } from './agent-core.js';
             }
             treeEl.innerHTML = '';
             data.tree.forEach(node => treeEl.appendChild(renderNode(node)));
+            window.__anchorScaffolds = Array.isArray(data.scaffolds) ? data.scaffolds : [];
         } catch (err) {
             treeEl.innerHTML = '<p>Tree error: ' + err.message + '</p>';
         }
@@ -152,6 +210,7 @@ import { createAgentSession } from './agent-core.js';
             readOnly: !node.writable,
         });
         openFile = { path: node.path, contents, dirty: false, ext: node.ext, writable: node.writable };
+        if (previewVisible) preview.loadFile(node.path);
         document.querySelector('.anchor-ide-editor-path').textContent = node.path;
         document.getElementById('anchor-ide-save').disabled = !node.writable;
         editor.onDidChangeModelContent(() => {
@@ -166,12 +225,24 @@ import { createAgentSession } from './agent-core.js';
     }
 
     document.getElementById('anchor-ide-save').addEventListener('click', async () => {
-        // Save via existing /files/page/{slug} POST endpoint (Phase 1).
         if (!openFile || !openFile.writable) return;
+        const cssMatch = openFile.path.match(/assets\/css\/(.+\.css)$/);
         const slug = slugFromPath(openFile.path);
-        if (!slug) { alert('Manual save only supports page-content/*.php in Phase 4A.'); return; }
+        let url;
+        if (slug) {
+            url = cfg.restBase + 'files/page/' + encodeURIComponent(slug);
+        } else if (cssMatch && cssMatch[1].indexOf('/') === -1) {
+            // Phase 1 REST: /files/css/{filename} only accepts a flat filename
+            // (regex [a-z0-9_-]+\.css). Nested CSS paths (e.g.
+            // assets/css/pages/foo.css) must be saved via the agent's
+            // write_file tool, which DOES support nested paths.
+            url = cfg.restBase + 'files/css/' + encodeURIComponent(cssMatch[1]);
+        } else {
+            alert('Manual save only supports page-content/*.php and top-level assets/css/*.css files.');
+            return;
+        }
         try {
-            const r = await fetch(cfg.restBase + 'files/page/' + encodeURIComponent(slug), {
+            const r = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': cfg.nonce },
                 body: JSON.stringify({ contents: editor.getValue() }),
@@ -184,6 +255,14 @@ import { createAgentSession } from './agent-core.js';
             openFile.contents = editor.getValue();
             openFile.dirty = false;
             document.querySelector('.anchor-ide-editor-dirty').hidden = true;
+            if (previewVisible) {
+                if (openFile.ext === 'css') {
+                    const m = openFile.path.match(/assets\/css\/(.+)$/);
+                    preview.hotSwapCss(m ? m[1] : '');
+                } else {
+                    preview.reload();
+                }
+            }
         } catch (err) {
             alert('Save failed: ' + err.message);
         }
@@ -255,6 +334,7 @@ import { createAgentSession } from './agent-core.js';
         }
         // Refresh tree so new files show up.
         loadTree();
+        if (previewVisible && openFile) preview.reload();
     }
 
     function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
@@ -282,6 +362,74 @@ import { createAgentSession } from './agent-core.js';
 
     document.getElementById('anchor-ide-chat-new').addEventListener('click', () => {
         msgList.innerHTML = '';
+    });
+
+    // ─── New Page modal ────────────────────────────────────────────
+    document.getElementById('anchor-ide-new-page').addEventListener('click', () => openNewPageModal());
+
+    function openNewPageModal() {
+        const sel = document.getElementById('anchor-new-page-template');
+        sel.innerHTML = '';
+        (window.__anchorScaffolds || []).forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.key;
+            opt.textContent = s.label;
+            sel.appendChild(opt);
+        });
+        document.getElementById('anchor-new-page-slug').value = '';
+        document.getElementById('anchor-new-page-error').hidden = true;
+        document.getElementById('anchor-new-page-target').textContent = 'child-theme/page-content/{slug}.php';
+        modal.hidden = false;
+    }
+    function closeNewPageModal() { modal.hidden = true; }
+    document.getElementById('anchor-new-page-cancel').addEventListener('click', closeNewPageModal);
+    modal.querySelector('.anchor-modal-backdrop').addEventListener('click', closeNewPageModal);
+
+    document.getElementById('anchor-new-page-slug').addEventListener('input', e => {
+        const v = e.target.value || '{slug}';
+        document.getElementById('anchor-new-page-target').textContent = 'child-theme/page-content/' + v + '.php';
+    });
+
+    document.getElementById('anchor-new-page-create').addEventListener('click', async () => {
+        const template = document.getElementById('anchor-new-page-template').value;
+        const slug = document.getElementById('anchor-new-page-slug').value.trim();
+        const errEl = document.getElementById('anchor-new-page-error');
+        if (!template) {
+            errEl.hidden = false;
+            errEl.textContent = 'Choose a template.';
+            return;
+        }
+        if (!slug || !/^[a-z0-9_\-/]+$/.test(slug)) {
+            errEl.hidden = false;
+            errEl.textContent = 'Slug must be lowercase letters, digits, dash, underscore, or slash.';
+            return;
+        }
+        try {
+            const r = await fetch(cfg.restBase + 'editor/new-page', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': cfg.nonce },
+                body: JSON.stringify({ template, slug }),
+            });
+            const data = await r.json();
+            if (!r.ok || data.error) {
+                errEl.hidden = false;
+                errEl.textContent = data.error || ('HTTP ' + r.status);
+                return;
+            }
+            closeNewPageModal();
+            loadTree();
+            // Open the new file in Monaco. Construct a tree node-shaped object.
+            openFileInEditor({
+                path: 'child-theme/page-content/' + slug + '.php',
+                label: slug + '.php',
+                type: 'file',
+                ext: 'php',
+                writable: true,
+            });
+        } catch (err) {
+            errEl.hidden = false;
+            errEl.textContent = 'Error: ' + err.message;
+        }
     });
 
     loadTree();
