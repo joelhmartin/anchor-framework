@@ -54,6 +54,7 @@ class Anchor_Editor_IDE_Page {
 				'restBase' => rest_url( 'anchor-assistant/v1/' ),
 				'nonce'    => wp_create_nonce( 'wp_rest' ),
 				'monacoVs' => 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs',
+				'homeUrl'  => home_url( '/' ),
 			] );
 		}
 	}

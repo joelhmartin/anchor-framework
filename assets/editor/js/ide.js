@@ -85,6 +85,7 @@ import { createPreview } from './preview.js';
         container: document.getElementById('anchor-ide-preview'),
         restBase: cfg.restBase,
         nonce: cfg.nonce,
+        homeUrl: cfg.homeUrl,
     });
     let previewVisible = localStorage.getItem('anchorIdePreview') === '1';
     preview.setVisible(previewVisible);

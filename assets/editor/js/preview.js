@@ -15,7 +15,7 @@
  *   preview.setVisible(bool);
  */
 
-export function createPreview({ container, restBase, nonce }) {
+export function createPreview({ container, restBase, nonce, homeUrl }) {
     let iframe = null;
     let placeholder = null;
     let lastPageUrl = '';     // last page URL we navigated to (for CSS hot-swap context)
@@ -108,8 +108,8 @@ export function createPreview({ container, restBase, nonce }) {
         const m = String(filePath || '').match(/page-content\/(.+)\.php$/);
         if (!m) return null;
         const slug = m[1];
-        const base = window.location.origin;
-        return slug === 'home' ? base + '/' : base + '/' + slug + '/';
+        const base = (homeUrl || window.location.origin + '/').replace(/\/$/, '/');
+        return slug === 'home' ? base : base + slug + '/';
     }
 
     return { loadFile, reload, hotSwapCss, setVisible };
