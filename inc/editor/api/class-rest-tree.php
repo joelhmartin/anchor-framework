@@ -63,6 +63,9 @@ class Anchor_Editor_REST_Tree {
 			'tree'           => $tree,
 			'writable_roots' => [ 'child-theme/page-content', 'child-theme/assets/css' ],
 			'readable_roots' => [ 'theme/template-parts' ],
+			'scaffolds'      => class_exists( 'Anchor_Editor_Scaffold_Service' )
+				? Anchor_Editor_Scaffold_Service::list_scaffolds()
+				: [],
 		] );
 	}
 
