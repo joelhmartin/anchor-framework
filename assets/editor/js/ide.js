@@ -109,6 +109,9 @@ import { createAgentSession } from './agent-core.js';
                 require(['vs/editor/editor.main'], () => {
                     monaco = window.monaco;
                     resolve(monaco);
+                }, (err) => {
+                    monacoPromise = null; // allow retry
+                    reject(new Error('Monaco editor.main load failed: ' + (err?.message || 'unknown')));
                 });
             };
             loader.onerror = () => {
