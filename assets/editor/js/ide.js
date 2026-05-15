@@ -224,12 +224,24 @@ import { createPreview } from './preview.js';
     }
 
     document.getElementById('anchor-ide-save').addEventListener('click', async () => {
-        // Save via existing /files/page/{slug} POST endpoint (Phase 1).
         if (!openFile || !openFile.writable) return;
+        const cssMatch = openFile.path.match(/assets\/css\/(.+\.css)$/);
         const slug = slugFromPath(openFile.path);
-        if (!slug) { alert('Manual save only supports page-content/*.php in Phase 4A.'); return; }
+        let url;
+        if (slug) {
+            url = cfg.restBase + 'files/page/' + encodeURIComponent(slug);
+        } else if (cssMatch && cssMatch[1].indexOf('/') === -1) {
+            // Phase 1 REST: /files/css/{filename} only accepts a flat filename
+            // (regex [a-z0-9_-]+\.css). Nested CSS paths (e.g.
+            // assets/css/pages/foo.css) must be saved via the agent's
+            // write_file tool, which DOES support nested paths.
+            url = cfg.restBase + 'files/css/' + encodeURIComponent(cssMatch[1]);
+        } else {
+            alert('Manual save only supports page-content/*.php and top-level assets/css/*.css files.');
+            return;
+        }
         try {
-            const r = await fetch(cfg.restBase + 'files/page/' + encodeURIComponent(slug), {
+            const r = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': cfg.nonce },
                 body: JSON.stringify({ contents: editor.getValue() }),
@@ -244,10 +256,8 @@ import { createPreview } from './preview.js';
             document.querySelector('.anchor-ide-editor-dirty').hidden = true;
             if (previewVisible) {
                 if (openFile.ext === 'css') {
-                    // Determine the relative path under assets/css/
                     const m = openFile.path.match(/assets\/css\/(.+)$/);
-                    const rel = m ? m[1] : '';
-                    preview.hotSwapCss(rel);
+                    preview.hotSwapCss(m ? m[1] : '');
                 } else {
                     preview.reload();
                 }
