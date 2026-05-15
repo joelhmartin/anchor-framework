@@ -44,8 +44,10 @@ export function createPreview({ container, restBase, nonce, homeUrl }) {
     function loadFile(filePath) {
         const url = previewUrlForFile(filePath);
         if (!url) {
+            iframe.src = 'about:blank';
+            lastPageUrl = '';
             iframe.hidden = true;
-            placeholder.hidden = false;
+            placeholder.hidden = !visible;
             return;
         }
         if (url !== lastPageUrl) {
@@ -94,8 +96,9 @@ export function createPreview({ container, restBase, nonce, homeUrl }) {
 
     function setVisible(v) {
         visible = !!v;
-        iframe.hidden = !visible || !iframe.src;
-        placeholder.hidden = !visible || !!iframe.src;
+        const hasUrl = !!lastPageUrl;
+        iframe.hidden = !visible || !hasUrl;
+        placeholder.hidden = !visible || hasUrl;
         container.parentElement.classList.toggle('anchor-ide-preview-on', visible);
     }
 
