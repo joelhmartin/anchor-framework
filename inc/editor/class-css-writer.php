@@ -84,17 +84,24 @@ class Anchor_Editor_CSS_Writer {
 			return new WP_Error( 'invalid_path', 'Invalid CSS path: ' . $relative_path );
 		}
 		$root = trailingslashit( get_stylesheet_directory() ) . 'assets/css';
-		if ( ! is_dir( $root ) ) {
-			wp_mkdir_p( $root );
+		if ( ! is_dir( $root ) && ! wp_mkdir_p( $root ) ) {
+			return new WP_Error( 'mkdir_root', 'Could not create assets/css root.' );
 		}
 		$root_real = realpath( $root );
-		$target    = $root . '/' . $relative_path;
-		$parent    = dirname( $target );
-		if ( ! is_dir( $parent ) ) {
-			wp_mkdir_p( $parent );
+		if ( false === $root_real ) {
+			return new WP_Error( 'realpath_root', 'Could not resolve assets/css root.' );
+		}
+		$target = $root . '/' . $relative_path;
+		$parent = dirname( $target );
+		if ( ! is_dir( $parent ) && ! wp_mkdir_p( $parent ) ) {
+			return new WP_Error( 'mkdir_parent', 'Could not create parent directory.' );
 		}
 		$parent_real = realpath( $parent );
-		if ( $root_real !== $parent_real && strpos( $parent_real, $root_real . DIRECTORY_SEPARATOR ) !== 0 ) {
+		if ( false === $parent_real ) {
+			return new WP_Error( 'realpath_parent', 'Could not resolve parent directory.' );
+		}
+		$root_with_sep = rtrim( $root_real, DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR;
+		if ( $parent_real !== $root_real && strpos( $parent_real, $root_with_sep ) !== 0 ) {
 			return new WP_Error( 'path_jail', 'Path escapes the assets/css/ jail.' );
 		}
 		return $parent_real . DIRECTORY_SEPARATOR . basename( $target );
