@@ -29,6 +29,7 @@ class Anchor_AI_Tool_Registry {
 			'read_file'  => 'Read a file under the allowed read roots. args: { path }. Returns { contents }.',
 			'write_file' => 'Write a PHP or CSS file under the allowed write roots. args: { path, contents }. Returns { bak_path }.',
 			'lint_php'   => 'Run php -l against a PHP file. args: { path }. Returns { ok, error }.',
+			'new_page_from_template' => 'Create a new page-content file from a scaffold template. args: { template, slug }. Refuses overwrite.',
 			'done'       => 'Terminal step. args: { summary }. No file-system effect.',
 		];
 	}
@@ -45,6 +46,7 @@ class Anchor_AI_Tool_Registry {
 			case 'read_file':  return self::tool_read_file( $args );
 			case 'write_file': return self::tool_write_file( $args );
 			case 'lint_php':   return self::tool_lint_php( $args );
+			case 'new_page_from_template': return self::tool_new_page_from_template( $args );
 			case 'done':       return self::tool_done( $args );
 			default:
 				return [ 'success' => false, 'error' => "Unknown tool: {$name}" ];
@@ -151,6 +153,26 @@ class Anchor_AI_Tool_Registry {
 			return [ 'success' => true, 'result' => [ 'ok' => false, 'error' => $lint->get_error_message() ] ];
 		}
 		return [ 'success' => true, 'result' => [ 'ok' => true, 'error' => null ] ];
+	}
+
+	private static function tool_new_page_from_template( $args ) {
+		$template = (string) ( $args['template'] ?? '' );
+		$slug     = (string) ( $args['slug']     ?? '' );
+		if ( $template === '' || $slug === '' ) {
+			return [ 'success' => false, 'error' => 'new_page_from_template requires { template, slug }' ];
+		}
+		if ( ! class_exists( 'Anchor_Editor_Scaffold_Service' ) ) {
+			return [ 'success' => false, 'error' => 'Scaffold service unavailable' ];
+		}
+		$r = Anchor_Editor_Scaffold_Service::create_from_scaffold( $template, $slug );
+		if ( is_wp_error( $r ) ) {
+			return [ 'success' => false, 'error' => $r->get_error_message() ];
+		}
+		return [ 'success' => true, 'result' => [
+			'path'     => $r['path'],
+			'slug'     => $r['slug'],
+			'template' => $r['template'],
+		] ];
 	}
 
 	private static function tool_done( $args ) {
