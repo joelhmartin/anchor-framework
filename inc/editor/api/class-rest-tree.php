@@ -77,7 +77,11 @@ class Anchor_Editor_REST_Tree {
 		if ( ! is_dir( $abs ) ) {
 			return $node;
 		}
-		foreach ( scandir( $abs ) as $name ) {
+		$scan = scandir( $abs );
+		if ( false === $scan ) {
+			return $node;
+		}
+		foreach ( $scan as $name ) {
 			if ( $name === '.' || $name === '..' ) continue;
 			$full = $abs . DIRECTORY_SEPARATOR . $name;
 			$rel  = $logical . '/' . $name;
