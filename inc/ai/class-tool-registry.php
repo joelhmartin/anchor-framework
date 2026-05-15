@@ -63,7 +63,11 @@ class Anchor_AI_Tool_Registry {
 			return [ 'success' => false, 'error' => "Not a directory: {$path}" ];
 		}
 		$entries = [];
-		foreach ( scandir( $abs ) as $name ) {
+		$scan = scandir( $abs );
+		if ( false === $scan ) {
+			return [ 'success' => false, 'error' => "Cannot read directory: {$path}" ];
+		}
+		foreach ( $scan as $name ) {
 			if ( $name === '.' || $name === '..' ) continue;
 			$full = $abs . DIRECTORY_SEPARATOR . $name;
 			$entries[] = [
@@ -187,16 +191,20 @@ class Anchor_AI_Tool_Registry {
 				}
 				$target = $abs_root . '/' . $rest;
 				$root_real = realpath( $abs_root );
+				if ( false === $root_real ) {
+					return new WP_Error( 'path_jail', 'Cannot resolve root' );
+				}
+				$root_with_sep = rtrim( $root_real, DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR;
 				$target_real = realpath( $target );
 				if ( $target_real === false ) {
 					// Allow non-existing files for read (returns "not found" later).
 					$parent = realpath( dirname( $target ) );
-					if ( $parent === false || strpos( $parent, $root_real ) !== 0 ) {
+					if ( $parent === false || ( $parent !== $root_real && strpos( $parent, $root_with_sep ) !== 0 ) ) {
 						return new WP_Error( 'path_jail', 'Path outside allowed roots' );
 					}
 					return $target;
 				}
-				if ( strpos( $target_real, $root_real ) !== 0 ) {
+				if ( $target_real !== $root_real && strpos( $target_real, $root_with_sep ) !== 0 ) {
 					return new WP_Error( 'path_jail', 'Path outside allowed roots' );
 				}
 				return $target_real;
