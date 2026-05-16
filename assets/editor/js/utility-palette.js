@@ -78,18 +78,23 @@ export function createUtilityPalette({ restBase, nonce, getMonacoEditor }) {
         });
     }
 
-    function copyClass(cls) {
+    async function copyClass(cls) {
         const snippet = cls;
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(snippet);
-        } else {
+        const fallbackCopy = () => {
             const ta = document.createElement('textarea');
             ta.value = snippet;
             document.body.appendChild(ta);
             ta.select();
             try { document.execCommand('copy'); } catch (_) {}
             document.body.removeChild(ta);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            try {
+                await navigator.clipboard.writeText(snippet);
+                return;
+            } catch (_) {}
         }
+        fallbackCopy();
     }
 
     function insertAtCursor(cls) {
