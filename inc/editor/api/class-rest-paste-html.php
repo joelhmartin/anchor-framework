@@ -24,6 +24,9 @@ class Anchor_Editor_REST_PasteHTML {
 		if ( $html === '' ) {
 			return new WP_REST_Response( [ 'error' => 'Empty HTML' ], 400 );
 		}
+		if ( $slug !== '' && ! preg_match( '#^[A-Za-z0-9_\-/]+$#', $slug ) ) {
+			return new WP_REST_Response( [ 'error' => 'Invalid slug.' ], 400 );
+		}
 		$sanitized = wp_kses_post( $html );
 
 		// Wrap in <section> if it doesn't already start with one.
