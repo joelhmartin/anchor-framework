@@ -170,14 +170,23 @@ import { createPasteSection } from './paste-section.js';
                 headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': cfg.nonce },
                 body: JSON.stringify({ no_header: noHeaderEl.checked, no_footer: noFooterEl.checked }),
             });
-            // Reload the file in Monaco to pick up the marker write.
-            openFileInEditor({
-                path: openFile.path,
-                label: openFile.path.split('/').pop(),
-                type: 'file',
-                ext: openFile.ext,
-                writable: openFile.writable,
-            });
+            // Refresh the on-disk baseline so the editor's "dirty" diff is accurate.
+            // Re-fetch the file contents quietly. If the buffer is NOT dirty, also
+            // sync the editor model. If it IS dirty, leave the user's edits alone.
+            try {
+                const r = await fetch(cfg.restBase + 'files/page/' + encodeURIComponent(slug), {
+                    headers: { 'X-WP-Nonce': cfg.nonce },
+                });
+                const data = await r.json();
+                if (data && typeof data.contents === 'string') {
+                    openFile.contents = data.contents;
+                    if (!openFile.dirty && editor) {
+                        editor.setValue(data.contents);
+                    }
+                    openFile.dirty = editor && editor.getValue() !== data.contents;
+                    document.querySelector('.anchor-ide-editor-dirty').hidden = !openFile.dirty;
+                }
+            } catch (_) {}
         } catch (_) {}
     }
     noHeaderEl.addEventListener('change', savePageFlags);
