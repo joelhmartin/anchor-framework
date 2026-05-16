@@ -36,7 +36,7 @@ class Anchor_Editor_Page_Flags {
 
 		// Strip any existing anchor marker lines from the top.
 		$stripped = preg_replace(
-			'/^(<\?php\s*\/\*\s*anchor:\s*no-(?:header|footer)\s*\*\/\s*\?>\s*\n)+/m',
+			'/\A(<\?php\s*\/\*\s*anchor:\s*no-(?:header|footer)\s*\*\/\s*\?>\s*\n)+/',
 			'',
 			$contents,
 			1
