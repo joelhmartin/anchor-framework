@@ -1,152 +1,166 @@
 /**
- * Anchor Editor — front-end pencil overlay.
+ * Anchor Editor — front-end pencil overlay (Phase 4 rewrite).
  *
- * Slide-over panel with files-for-this-page list + chat (plan-execute).
- * No Monaco. Activated by a pencil-icon toggle button.
+ * Renders only on Anchor-managed pages (gated server-side in should_load()).
+ * Floating FA pen-to-square button → slide-over drawer with:
+ *   - Page info header (title, slug, flag chips)
+ *   - Simple chat (send → reply, no plan-execute UI)
+ *   - "Open full editor" link
+ *
+ * No Files section. No agent-core import.
  */
 
-import { createAgentSession } from './agent-core.js';
-
 (function () {
-    if (typeof window.anchorPencil === 'undefined') return;
-    const cfg = window.anchorPencil;
+  const cfg = window.anchorPencil;
+  if (!cfg || !cfg.postId) return;
 
-    // Build the toggle button and slide-over panel.
-    const toggle = document.createElement('button');
-    toggle.className = 'anchor-pencil-toggle';
-    toggle.innerHTML = '✏️';
-    toggle.title = 'Anchor Editor';
-    document.body.appendChild(toggle);
+  // ── 1. Floating pencil button ──────────────────────────────────────────────
+  const btn = document.createElement('button');
+  btn.className = 'anchor-pencil-btn';
+  btn.type = 'button';
+  btn.setAttribute('aria-label', 'Open Anchor editor');
+  btn.innerHTML = '<i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>';
+  document.body.appendChild(btn);
 
-    const panel = document.createElement('div');
-    panel.className = 'anchor-pencil-panel';
-    panel.innerHTML = `
-        <div class="anchor-pencil-header">
-            <strong>Anchor Editor</strong>
-            <button class="anchor-pencil-close" title="Close">×</button>
-        </div>
-        <div class="anchor-pencil-files" id="anchor-pencil-files">
-            <h4>Files</h4>
-            <ul></ul>
-        </div>
-        <div class="anchor-pencil-viewer" id="anchor-pencil-viewer" hidden></div>
-        <div class="anchor-pencil-chat" id="anchor-pencil-chat">
-            <div class="anchor-pencil-messages" id="anchor-pencil-msgs"></div>
-            <div class="anchor-pencil-input">
-                <textarea id="anchor-pencil-text" rows="2" placeholder="Tell the agent what to do…"></textarea>
-                <button class="button button-primary" id="anchor-pencil-send">Send</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(panel);
+  // ── 2. Slide-over drawer ───────────────────────────────────────────────────
+  const drawer = document.createElement('div');
+  drawer.className = 'anchor-pencil-drawer';
+  drawer.hidden = true;
+  drawer.setAttribute('role', 'dialog');
+  drawer.setAttribute('aria-label', 'Anchor Editor');
+  drawer.innerHTML = `
+    <header class="apd-header">
+      <h2>Anchor Editor</h2>
+      <button class="apd-close" type="button" aria-label="Close">&times;</button>
+    </header>
+    <section class="apd-page-info">
+      <strong>${esc(cfg.title)}</strong>
+      <code>/${esc(cfg.slug)}</code>
+      <div class="apd-chips">
+        <button class="apd-chip" type="button" data-flag="no_header"></button>
+        <button class="apd-chip" type="button" data-flag="no_footer"></button>
+      </div>
+    </section>
+    <section class="apd-chat" id="apd-chat"></section>
+    <footer class="apd-footer">
+      <a class="apd-link" href="${esc(cfg.editUrl)}">Open full editor &rarr;</a>
+    </footer>
+  `;
+  document.body.appendChild(drawer);
 
-    toggle.addEventListener('click', () => panel.classList.toggle('is-open'));
-    panel.querySelector('.anchor-pencil-close').addEventListener('click', () => panel.classList.remove('is-open'));
+  // ── 3. Flag chips ──────────────────────────────────────────────────────────
+  function updateChip(chip, off) {
+    chip.classList.toggle('is-off', !!off);
+    chip.textContent =
+      (chip.dataset.flag === 'no_header' ? 'Header' : 'Footer') +
+      (off ? ' off' : ' on');
+  }
 
-    // Populate files-for-this-page list from cfg.files (localized server-side).
-    const filesUl = panel.querySelector('#anchor-pencil-files ul');
-    (cfg.files || []).forEach(f => {
-        const li = document.createElement('li');
-        const btn = document.createElement('button');
-        btn.textContent = f.label || f.path;
-        btn.addEventListener('click', () => viewFile(f));
-        li.appendChild(btn);
-        filesUl.appendChild(li);
+  drawer.querySelectorAll('.apd-chip').forEach(function (chip) {
+    var flag = chip.dataset.flag;
+    updateChip(chip, !!(cfg.flags && cfg.flags[flag]));
+
+    chip.addEventListener('click', async function () {
+      var next = !chip.classList.contains('is-off'); // next state = toggled
+      // Build the full flags object from current DOM state, then apply the toggle.
+      var body = {
+        no_header: drawer.querySelector('.apd-chip[data-flag="no_header"]').classList.contains('is-off'),
+        no_footer: drawer.querySelector('.apd-chip[data-flag="no_footer"]').classList.contains('is-off'),
+      };
+      body[flag] = next;
+
+      try {
+        var r = await fetch(
+          cfg.restBase + 'editor/page-flags/' + encodeURIComponent(cfg.slug),
+          {
+            method: 'POST',
+            headers: {
+              'X-WP-Nonce': cfg.nonce,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+          }
+        );
+        if (!r.ok) throw new Error('flags ' + r.status);
+        cfg.flags = body;
+        updateChip(chip, next);
+        location.reload();
+      } catch (err) {
+        console.error('[anchor-pencil] flag toggle failed', err);
+      }
     });
+  });
 
-    async function viewFile(f) {
-        const v = document.getElementById('anchor-pencil-viewer');
-        v.hidden = false;
-        v.innerHTML = `<div class="anchor-pencil-viewer-path">${escapeHtml(f.path)}</div><pre class="anchor-pencil-viewer-pre">Loading…</pre>`;
-        // Use the same /files/page/{slug} endpoint when path is page-content.
-        const slug = (f.path.match(/page-content\/(.+)\.php$/) || [])[1];
-        if (!slug) {
-            v.querySelector('pre').textContent = '(read endpoint not yet available for this file type)';
-            return;
-        }
-        try {
-            const r = await fetch(cfg.restBase + 'files/page/' + encodeURIComponent(slug), {
-                headers: { 'X-WP-Nonce': cfg.nonce },
-            });
-            const data = await r.json();
-            if (!r.ok || data.error) {
-                v.querySelector('pre').textContent = 'Error: ' + (data.error || r.status);
-                return;
-            }
-            v.querySelector('pre').textContent = data.contents || '(empty)';
-        } catch (err) {
-            v.querySelector('pre').textContent = 'Error: ' + err.message;
-        }
+  // ── 4. Open / close ────────────────────────────────────────────────────────
+  btn.addEventListener('click', function () { drawer.hidden = false; });
+  drawer.querySelector('.apd-close').addEventListener('click', function () { drawer.hidden = true; });
+
+  // ── 5. Chat ────────────────────────────────────────────────────────────────
+  (function initChat() {
+    var root = drawer.querySelector('#apd-chat');
+    root.innerHTML = [
+      '<div class="apd-chat-messages" id="apd-chat-messages"></div>',
+      '<form class="apd-chat-form" id="apd-chat-form">',
+      '  <textarea placeholder="What should change on this page?" rows="2"></textarea>',
+      '  <button type="submit">Send</button>',
+      '</form>',
+    ].join('');
+
+    var list    = root.querySelector('#apd-chat-messages');
+    var form    = root.querySelector('#apd-chat-form');
+    var input   = form.querySelector('textarea');
+    var history = [];
+
+    function push(role, content) {
+      history.push({ role: role, content: content });
+      var el = document.createElement('div');
+      el.className = 'apd-msg apd-msg-' + role;
+      el.textContent = content;
+      list.appendChild(el);
+      list.scrollTop = list.scrollHeight;
     }
 
-    // Chat — same plan-execute UX as IDE, just no Monaco.
-    const agent = createAgentSession({ restBase: cfg.restBase, nonce: cfg.nonce });
-    const msgList = document.getElementById('anchor-pencil-msgs');
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var msg = input.value.trim();
+      if (!msg) return;
+      input.value = '';
+      push('user', msg);
 
-    agent.addEventListener('message', e => {
-        const d = document.createElement('div');
-        d.className = 'anchor-msg anchor-msg-' + e.detail.role;
-        d.textContent = e.detail.text;
-        msgList.appendChild(d);
-        msgList.scrollTop = msgList.scrollHeight;
-    });
-
-    agent.addEventListener('plan', e => {
-        const box = document.createElement('div');
-        box.className = 'anchor-plan';
-        box.innerHTML = '<div class="anchor-plan-summary"></div><div class="anchor-plan-steps"></div><button class="button button-primary anchor-plan-approve">Approve</button>';
-        box.querySelector('.anchor-plan-summary').textContent = e.detail.plan.summary;
-        const stepsEl = box.querySelector('.anchor-plan-steps');
-        e.detail.plan.steps.forEach((step, i) => {
-            const r = document.createElement('label');
-            r.className = 'anchor-plan-step';
-            r.innerHTML = `<input type="checkbox" data-step-index="${i}" checked> <span class="anchor-step-tool">${step.tool}</span> <span class="anchor-step-rationale">${escapeHtml(step.rationale)}</span>`;
-            stepsEl.appendChild(r);
+      try {
+        var r = await fetch(cfg.restBase + 'ai/chat', {
+          method: 'POST',
+          headers: {
+            'X-WP-Nonce': cfg.nonce,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message:   msg,
+            history:   history,
+            page_slug: cfg.slug,
+            post_id:   cfg.postId,
+          }),
         });
-        box.querySelector('.anchor-plan-approve').addEventListener('click', () => {
-            const keep = Array.from(stepsEl.querySelectorAll('input[type="checkbox"]')).map(cb => cb.checked);
-            const modified = { ...e.detail.plan, steps: e.detail.plan.steps.filter((_, i) => keep[i]) };
-            if (modified.steps.length === 0 || modified.steps[modified.steps.length - 1].tool !== 'done') {
-                alert('Plan must end with the "done" step.'); return;
-            }
-            box.querySelector('.anchor-plan-approve').disabled = true;
-            agent.approve(modified);
-        });
-        msgList.appendChild(box);
-        msgList.scrollTop = msgList.scrollHeight;
+        var data  = await r.json();
+        var reply = data.reply || data.assistant_text || data.message || data.text || JSON.stringify(data);
+        push('assistant', reply);
+      } catch (err) {
+        push('assistant', 'Error: ' + err.message);
+      }
     });
 
-    agent.addEventListener('step-result', e => {
-        const d = document.createElement('div');
-        d.className = 'anchor-step-result ' + (e.detail.skipped ? 'is-skipped' : e.detail.success ? 'is-success' : 'is-failure');
-        d.textContent = (e.detail.skipped ? '⊘ ' : e.detail.success ? '✓ ' : '✗ ') + e.detail.tool + (e.detail.error ? ' — ' + e.detail.error : '');
-        msgList.appendChild(d);
-        msgList.scrollTop = msgList.scrollHeight;
+    input.addEventListener('keydown', function (e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        form.requestSubmit();
+      }
     });
+  })();
 
-    agent.addEventListener('done', e => {
-        if (e.detail.halted) {
-            const d = document.createElement('div');
-            d.className = 'anchor-msg anchor-msg-agent';
-            d.textContent = 'Halted: ' + (e.detail.halt_reason || 'unknown');
-            msgList.appendChild(d);
-        }
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
-
-    document.getElementById('anchor-pencil-send').addEventListener('click', send);
-    document.getElementById('anchor-pencil-text').addEventListener('keydown', e => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); send(); }
-    });
-    function send() {
-        const ta = document.getElementById('anchor-pencil-text');
-        const text = ta.value.trim();
-        if (!text) return;
-        ta.value = '';
-        agent.send(text, {
-            open_files: (cfg.files || []).map(f => f.path),
-            current_page_slug: cfg.currentPageSlug || '',
-        });
-    }
-
-    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+  }
 })();

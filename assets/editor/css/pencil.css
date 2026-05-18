@@ -1,111 +1,146 @@
-/* Anchor Editor pencil overlay */
+/* Anchor Editor — pencil overlay (Phase 4 rewrite) */
 
-.anchor-pencil-toggle {
-    position: fixed;
-    bottom: 16px;
-    right: 16px;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: #1a1a1a;
-    color: #fff;
-    border: none;
-    font-size: 22px;
-    cursor: pointer;
-    z-index: 99998;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+/* ── Floating pencil button ─────────────────────────────────────────────── */
+.anchor-pencil-btn {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 9000;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--anchor-color-primary, #2271b1);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  transition: transform .15s, background .15s, box-shadow .15s;
+  padding: 0;
 }
-.anchor-pencil-toggle:hover { background: #333; }
+.anchor-pencil-btn:hover {
+  background: var(--anchor-color-primary-dark, #135e96);
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .3);
+}
+.anchor-pencil-btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.anchor-pencil-btn i { line-height: 1; }
 
-.anchor-pencil-panel {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: min(420px, 100vw);
-    height: 100vh;
-    background: #fff;
-    box-shadow: -2px 0 8px rgba(0,0,0,0.15);
-    transform: translateX(100%);
-    transition: transform 0.2s ease;
-    z-index: 99999;
-    display: flex;
-    flex-direction: column;
+/* ── Drawer ─────────────────────────────────────────────────────────────── */
+.anchor-pencil-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(440px, 100vw);
+  z-index: 9001;
+  background: #fff;
+  border-left: 1px solid #ddd;
+  box-shadow: -4px 0 16px rgba(0, 0, 0, .15);
+  display: flex;
+  flex-direction: column;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #1d2327;
 }
-.anchor-pencil-panel.is-open { transform: translateX(0); }
+.anchor-pencil-drawer[hidden] { display: none; }
 
-.anchor-pencil-header {
-    padding: 14px 16px;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.apd-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid #eee;
 }
-.anchor-pencil-close {
-    background: transparent;
-    border: 0;
-    font-size: 22px;
-    cursor: pointer;
-    color: #666;
-}
+.apd-header h2 { margin: 0; font-size: 15px; font-weight: 600; }
 
-.anchor-pencil-files {
-    padding: 12px 16px;
-    border-bottom: 1px solid #eee;
+.apd-close {
+  background: none;
+  border: 0;
+  font-size: 22px;
+  cursor: pointer;
+  color: #555;
+  line-height: 1;
+  padding: 0 6px;
 }
-.anchor-pencil-files h4 { margin: 0 0 6px 0; font-size: 13px; text-transform: uppercase; color: #666; }
-.anchor-pencil-files ul { list-style: none; margin: 0; padding: 0; }
-.anchor-pencil-files li { margin: 0; }
-.anchor-pencil-files button {
-    background: transparent;
-    border: 0;
-    padding: 4px 0;
-    cursor: pointer;
-    font-size: 13px;
-    color: #1a1a1a;
-    text-align: left;
-}
-.anchor-pencil-files button:hover { text-decoration: underline; }
+.apd-close:hover { color: #1d2327; }
 
-.anchor-pencil-viewer {
-    border-bottom: 1px solid #eee;
-    padding: 12px 16px;
-    max-height: 200px;
-    overflow: auto;
-    font-size: 12px;
-}
-.anchor-pencil-viewer-path { font-family: monospace; color: #666; margin-bottom: 6px; }
-.anchor-pencil-viewer-pre {
-    background: #fafafa;
-    border: 1px solid #eee;
-    padding: 8px;
-    border-radius: 4px;
-    white-space: pre;
-    overflow: auto;
-}
-
-.anchor-pencil-chat {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-}
-.anchor-pencil-messages {
-    flex: 1;
-    overflow: auto;
-    padding: 10px 14px;
-    font-size: 13px;
-}
-.anchor-pencil-input {
-    padding: 10px 14px;
-    border-top: 1px solid #eee;
-    display: flex;
-    gap: 6px;
-}
-.anchor-pencil-input textarea {
-    flex: 1;
-    font-size: 13px;
-    resize: vertical;
+/* ── Page info ───────────────────────────────────────────────────────────── */
+.apd-page-info { padding: 14px 16px; border-bottom: 1px solid #eee; }
+.apd-page-info strong { display: block; font-size: 14px; }
+.apd-page-info code {
+  display: block;
+  color: #666;
+  font-size: 12px;
+  margin-top: 4px;
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 2px;
+  max-width: max-content;
 }
 
-/* Reuse the .anchor-msg, .anchor-plan, .anchor-step-result rules from ide.css
-   for plan UI; pencil-only styles end here. */
+.apd-chips { display: flex; gap: 6px; margin-top: 10px; }
+.apd-chip {
+  border: 1px solid #2271b1;
+  color: #2271b1;
+  background: #fff;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.apd-chip:hover { background: #f0f6fc; }
+.apd-chip.is-off { border-color: #aaa; color: #999; background: #f5f5f5; }
+
+/* ── Chat ────────────────────────────────────────────────────────────────── */
+.apd-chat { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+.apd-chat-messages { flex: 1; overflow-y: auto; padding: 14px 16px; }
+.apd-msg {
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  max-width: 90%;
+  word-wrap: break-word;
+}
+.apd-msg-user      { background: #f0f6fc; margin-left: auto; }
+.apd-msg-assistant { background: #f6f7f7; }
+
+.apd-chat-form {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid #eee;
+}
+.apd-chat-form textarea {
+  flex: 1;
+  padding: 6px 8px;
+  resize: vertical;
+  min-height: 44px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 13px;
+}
+.apd-chat-form button {
+  padding: 0 16px;
+  border: 0;
+  background: #2271b1;
+  color: #fff;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.apd-chat-form button:hover { background: #135e96; }
+
+/* ── Footer ─────────────────────────────────────────────────────────────── */
+.apd-footer { padding: 12px 16px; border-top: 1px solid #eee; }
+.apd-link { color: #2271b1; text-decoration: none; font-size: 13px; }
+.apd-link:hover { text-decoration: underline; }
