@@ -86,7 +86,66 @@ class Anchor_Editor_Page_Sync {
 	// -----------------------------------------------------------------------
 
 	/**
+	 * Ensure a chain of managed WP page posts exists for a parent slug path and
+	 * return the post ID of the deepest segment.
+	 *
+	 * Each ancestor post is inserted with post_parent set to its own parent so
+	 * that get_page_by_path() resolves nested paths correctly.
+	 *
+	 * @param string $parent_slug  e.g. 'services' or 'services/sub'
+	 * @return int|WP_Error
+	 */
+	private static function ensure_parent_post( $parent_slug ) {
+		$segments  = explode( '/', $parent_slug );
+		$parent_id = 0;
+		$built     = array(); // cumulative path segments for get_page_by_path lookups
+
+		foreach ( $segments as $segment ) {
+			// Build the cumulative path up to and including this segment.
+			$built[] = $segment;
+			$path    = implode( '/', $built );
+
+			// Look up existing post for this path.
+			$existing_id = self::find_post_by_slug( $path );
+			if ( $existing_id ) {
+				if ( ! self::is_anchor_managed( $existing_id ) ) {
+					return new WP_Error(
+						'slug_collision',
+						"Slug '$path' is already a non-managed page (ID $existing_id)."
+					);
+				}
+				$parent_id = $existing_id;
+				continue;
+			}
+
+			$id = wp_insert_post(
+				array(
+					'post_type'    => 'page',
+					'post_status'  => 'publish',
+					'post_title'   => self::derive_title( $segment ),
+					'post_name'    => $segment,
+					'post_parent'  => $parent_id,
+					'post_content' => '',
+					'meta_input'   => array( self::META_KEY => 1 ),
+				),
+				true
+			);
+
+			if ( is_wp_error( $id ) ) {
+				return $id;
+			}
+			$parent_id = (int) $id;
+		}
+
+		return $parent_id;
+	}
+
+	/**
 	 * Return the ID of the managed WP page for $slug, creating it if absent.
+	 *
+	 * For nested slugs (containing '/'), each ancestor segment is created as a
+	 * parent page post so WP's hierarchical slug resolution works correctly and
+	 * ensure_post remains idempotent on repeated calls.
 	 *
 	 * Returns WP_Error with code 'slug_collision' if a non-managed page already
 	 * occupies the slug.
@@ -112,12 +171,28 @@ class Anchor_Editor_Page_Sync {
 			);
 		}
 
+		// Resolve post_parent for nested slugs.
+		$post_parent = 0;
+		$post_name   = $slug;
+		if ( strpos( $slug, '/' ) !== false ) {
+			$last_slash  = strrpos( $slug, '/' );
+			$parent_path = substr( $slug, 0, $last_slash );
+			$post_name   = substr( $slug, $last_slash + 1 );
+
+			$parent_id = self::ensure_parent_post( $parent_path );
+			if ( is_wp_error( $parent_id ) ) {
+				return $parent_id;
+			}
+			$post_parent = $parent_id;
+		}
+
 		$id = wp_insert_post(
 			array(
 				'post_type'    => 'page',
 				'post_status'  => 'publish',
 				'post_title'   => $title ? $title : self::derive_title( $slug ),
-				'post_name'    => $slug,
+				'post_name'    => $post_name,
+				'post_parent'  => $post_parent,
 				'post_content' => '',
 				'meta_input'   => array( self::META_KEY => 1 ),
 			),
