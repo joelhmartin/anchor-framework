@@ -24,7 +24,19 @@ class Anchor_Editor_IDE_Page {
 	}
 
 	private function init() {
+		add_action( 'admin_menu',            [ $this, 'register_hidden' ], 30 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ] );
+	}
+
+	public function register_hidden() {
+		add_submenu_page(
+			null,                              // hidden from menu
+			'Anchor IDE',
+			'Anchor IDE',
+			'manage_options',
+			'anchor-live-editor',
+			[ $this, 'render_host' ]
+		);
 	}
 
 	public function enqueue_assets( $hook ) {
