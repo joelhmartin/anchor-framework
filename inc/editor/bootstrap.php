@@ -44,6 +44,9 @@ require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-utilities.php';
 require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-page-flags.php';
 require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-paste-html.php';
 
+// WP-native editor (Phase 5)
+require_once Anchor_Editor::path() . 'inc/editor/class-page-sync.php';
+
 // AI module
 require_once Anchor_Editor::path() . 'inc/ai/class-ai-handler.php';
 require_once Anchor_Editor::path() . 'inc/ai/class-prompt-builder.php';
