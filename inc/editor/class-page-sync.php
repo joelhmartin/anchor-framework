@@ -129,4 +129,63 @@ class Anchor_Editor_Page_Sync {
 		}
 		return (int) $id;
 	}
+
+	// -----------------------------------------------------------------------
+	// create — atomic file + post creation
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Write a new page-content file and create its paired WP post atomically.
+	 *
+	 * If the post creation fails, the file is rolled back (unlinked).
+	 *
+	 * @param string      $slug
+	 * @param string      $contents  Full PHP/HTML file contents.
+	 * @param string|null $title     Human title; derived from slug if omitted.
+	 * @return array|WP_Error  { post_id, slug, path, edit_url } on success.
+	 */
+	public static function create( $slug, $contents, $title = null ) {
+		$slug = self::sanitize_slug( $slug );
+		if ( '' === $slug ) {
+			return new WP_Error( 'bad_slug', 'Empty or invalid slug.' );
+		}
+
+		if ( ! class_exists( 'Anchor_Editor_File_Writer' ) ) {
+			return new WP_Error( 'no_writer', 'File writer unavailable.' );
+		}
+
+		// 1. Write file first (cheaper to rollback than post).
+		$write = Anchor_Editor_File_Writer::write_page( $slug, $contents );
+		if ( is_wp_error( $write ) ) {
+			return $write;
+		}
+		$path = isset( $write['path'] ) ? $write['path'] : '';
+
+		// 2. Create paired post; rollback file on failure.
+		$post_id = self::ensure_post( $slug, $title );
+		if ( is_wp_error( $post_id ) ) {
+			if ( $path && file_exists( $path ) ) {
+				@unlink( $path );
+			}
+			return $post_id;
+		}
+
+		return array(
+			'post_id'  => $post_id,
+			'slug'     => $slug,
+			'path'     => $path,
+			'edit_url' => self::get_edit_url( $post_id ),
+		);
+	}
+
+	/**
+	 * Return the Anchor editor URL for a given post ID.
+	 * Phase 2 will register the actual screen; this URL is correct already.
+	 *
+	 * @param int $post_id
+	 * @return string
+	 */
+	public static function get_edit_url( $post_id ) {
+		return admin_url( 'admin.php?page=anchor-editor&post=' . (int) $post_id );
+	}
 }
