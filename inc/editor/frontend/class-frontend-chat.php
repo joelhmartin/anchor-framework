@@ -50,8 +50,11 @@ class Anchor_Editor_Frontend_Chat {
     public function maybe_enqueue() {
         if ( ! $this->should_load() ) return;
 
-        $tpl_dir = get_stylesheet_directory();
-        $tpl_url = get_stylesheet_directory_uri();
+        // Framework-owned editor assets live in the parent theme, so resolve
+        // them against the template (parent) dir rather than the stylesheet
+        // (child) dir. Per-page lookups below stay on get_stylesheet_directory().
+        $tpl_dir = get_template_directory();
+        $tpl_url = get_template_directory_uri();
 
         wp_enqueue_style(
             'anchor-editor-pencil',
