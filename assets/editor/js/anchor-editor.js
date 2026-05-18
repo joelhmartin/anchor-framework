@@ -4,6 +4,8 @@
  * Phase 3.A: editor layout shell, tabs, Monaco PHP loader.
  * Phase 3.B: auto-save (blur + Cmd-S), dirty-tab indicator, CSS tab with
  *            "Create page CSS" empty state, preview hot-swap.
+ * Phase 3.C: chat panel (agent loop), page-flag chips in toolbar, Cmd-K
+ *            utility palette.
  *
  * Mounts on <div id="anchor-editor-app">. Reads window.anchorEditor for config.
  *
@@ -12,7 +14,16 @@
  *   POST anchor-assistant/v1/files/page/{slug}      → body { contents }
  *   GET  anchor-assistant/v1/files/page-css/{slug}  → { contents, exists, path } (always 200)
  *   POST anchor-assistant/v1/files/page-css/{slug}  → body { contents }
+ *   GET  anchor-assistant/v1/editor/page-flags/{slug} → { no_header, no_footer }
+ *   POST anchor-assistant/v1/editor/page-flags/{slug} → body { no_header, no_footer }
+ *   POST anchor-assistant/v1/agent/plan             → { plan_id, plan }
+ *   POST anchor-assistant/v1/agent/execute          → { results, halted, halt_reason }
+ *   POST anchor-assistant/v1/ai/chat                → { reply }
+ *   GET  anchor-assistant/v1/editor/utilities       → { classes: [] }
  */
+
+import { createAgentSession } from './agent-core.js';
+import { createUtilityPalette } from './utility-palette.js';
 
 (function () {
     'use strict';
@@ -137,6 +148,10 @@
         '      <button class="ae-tab" data-tab="css">CSS</button>',
         '      <button class="ae-tab" data-tab="chat">Chat</button>',
         '    </div>',
+        '    <div class="ae-flags">',
+        '      <button class="ae-chip" data-flag="no-header" type="button">Header …</button>',
+        '      <button class="ae-chip" data-flag="no-footer" type="button">Footer …</button>',
+        '    </div>',
         '    <div class="ae-toolbar-right">',
         '      <button class="ae-btn ae-save" disabled>Save</button>',
         '      <a class="ae-btn" target="_blank" rel="noopener" href="' + escapeAttr(previewSrc) + '">Preview &#8599;</a>',
@@ -154,8 +169,14 @@
         '      </div>',
         '      <div class="ae-monaco-host" id="ae-monaco-css" hidden></div>',
         '    </section>',
-        '    <section class="ae-panel" data-panel="chat" hidden>',
-        '      <p class="ae-panel-placeholder">Chat lands in Phase 3.C.</p>',
+        '    <section class="ae-panel ae-panel-chat" data-panel="chat" hidden>',
+        '      <div class="ae-chat">',
+        '        <div class="ae-chat-messages" id="ae-chat-messages"></div>',
+        '        <div class="ae-chat-input">',
+        '          <textarea id="ae-chat-text" placeholder="Ask the agent to make changes… (⌘↵ to send)"></textarea>',
+        '          <button class="ae-btn" id="ae-chat-send">Send</button>',
+        '        </div>',
+        '      </div>',
         '    </section>',
         '    <aside class="ae-preview">',
         '      <iframe id="ae-preview-frame" src="' + escapeAttr(previewSrc) + '" title="Page preview"></iframe>',
@@ -208,6 +229,72 @@
             });
         }
     });
+
+    // ── Cmd-K / Ctrl-K → utility palette ────────────────────────────────────
+
+    var palette = createUtilityPalette({
+        restBase: restBase,
+        nonce: nonce,
+        getMonacoEditor: function () {
+            var active = host.querySelector('.ae-tab.is-active');
+            var panel  = active ? active.getAttribute('data-tab') : 'php';
+            return editors[panel] || null;
+        },
+    });
+
+    window.addEventListener('keydown', function (e) {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            palette.toggle();
+        }
+    });
+
+    // ── Page-flag chips ──────────────────────────────────────────────────────
+
+    function loadFlags() {
+        if (!slug) return;
+        fetch(restBase + 'editor/page-flags/' + encodeURIComponent(slug), {
+            headers: { 'X-WP-Nonce': nonce },
+        }).then(function (r) {
+            if (!r.ok) return null;
+            return r.json();
+        }).then(function (flags) {
+            if (!flags) return;
+            updateChip('no-header', !!flags.no_header);
+            updateChip('no-footer', !!flags.no_footer);
+        }).catch(function () {});
+    }
+
+    function updateChip(flag, isOff) {
+        var chip = host.querySelector('.ae-chip[data-flag="' + flag + '"]');
+        if (!chip) return;
+        chip.classList.toggle('is-off', isOff);
+        var label = flag === 'no-header' ? 'Header' : 'Footer';
+        chip.textContent = label + ' ' + (isOff ? 'off' : 'on');
+    }
+
+    host.querySelectorAll('.ae-chip').forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            var flag  = chip.dataset.flag;
+            var isOff = !chip.classList.contains('is-off'); // toggle
+            // Build POST body: no_header / no_footer booleans, keep the other as-is
+            var body = {
+                no_header: flag === 'no-header' ? isOff : !!host.querySelector('.ae-chip[data-flag="no-header"]').classList.contains('is-off'),
+                no_footer: flag === 'no-footer' ? isOff : !!host.querySelector('.ae-chip[data-flag="no-footer"]').classList.contains('is-off'),
+            };
+            fetch(restBase + 'editor/page-flags/' + encodeURIComponent(slug), {
+                method: 'POST',
+                headers: { 'X-WP-Nonce': nonce, 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            }).then(function (r) {
+                if (!r.ok) return;
+                updateChip(flag, isOff);
+                reloadPreview();
+            }).catch(function () {});
+        });
+    });
+
+    loadFlags();
 
     // ── Monaco loader ────────────────────────────────────────────────────────
 
@@ -302,6 +389,125 @@
             initCssEditor('');
         }
     });
+
+    // ── Chat panel (agent loop) ──────────────────────────────────────────────
+
+    var agent = createAgentSession({ restBase: restBase, nonce: nonce });
+    var msgList = document.getElementById('ae-chat-messages');
+
+    function appendMessage(role, text) {
+        var div = document.createElement('div');
+        div.className = 'ae-chat-message ' + role;
+        div.textContent = text;
+        msgList.appendChild(div);
+        msgList.scrollTop = msgList.scrollHeight;
+    }
+
+    function renderPlan(planData, planId) {
+        var wrapper = document.createElement('div');
+        wrapper.className = 'ae-chat-message plan';
+
+        var summary = document.createElement('div');
+        summary.className = 'ae-plan-summary';
+        summary.textContent = planData.summary || 'Proposed plan:';
+        wrapper.appendChild(summary);
+
+        var stepsEl = document.createElement('div');
+        stepsEl.className = 'ae-plan-steps-list';
+
+        (planData.steps || []).forEach(function (step, i) {
+            var row = document.createElement('div');
+            row.className = 'ae-plan-step';
+            var cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.checked = true;
+            cb.dataset.stepIndex = i;
+            var label = document.createElement('span');
+            label.textContent = step.tool + ' — ' + (step.rationale || '');
+            row.appendChild(cb);
+            row.appendChild(label);
+            stepsEl.appendChild(row);
+        });
+        wrapper.appendChild(stepsEl);
+
+        var approveBtn = document.createElement('button');
+        approveBtn.className = 'ae-btn ae-plan-approve';
+        approveBtn.textContent = 'Approve & run';
+        approveBtn.addEventListener('click', function () {
+            var keep = Array.from(stepsEl.querySelectorAll('input[type="checkbox"]')).map(function (cb) { return cb.checked; });
+            var filteredSteps = (planData.steps || []).filter(function (_, i) { return keep[i]; });
+            // Ensure done step is still present
+            if (!filteredSteps.length || filteredSteps[filteredSteps.length - 1].tool !== 'done') {
+                alert('Plan must end with the "done" step.');
+                return;
+            }
+            approveBtn.disabled = true;
+            approveBtn.textContent = 'Running…';
+            agent.approve({ summary: planData.summary, steps: filteredSteps });
+        });
+        wrapper.appendChild(approveBtn);
+
+        msgList.appendChild(wrapper);
+        msgList.scrollTop = msgList.scrollHeight;
+    }
+
+    function renderStepResult(detail) {
+        var div = document.createElement('div');
+        var status = detail.skipped ? 'skipped' : (detail.success ? 'ok' : 'fail');
+        div.className = 'ae-chat-step-result ae-step-' + status;
+        var glyph = detail.skipped ? '⊘' : (detail.success ? '✓' : '✗');
+        div.textContent = glyph + ' ' + detail.tool + (detail.error ? ' — ' + detail.error : '');
+        msgList.appendChild(div);
+        msgList.scrollTop = msgList.scrollHeight;
+    }
+
+    agent.addEventListener('message', function (e) {
+        appendMessage(e.detail.role === 'user' ? 'user' : 'assistant', e.detail.text);
+    });
+
+    agent.addEventListener('plan', function (e) {
+        renderPlan(e.detail.plan, e.detail.planId);
+    });
+
+    agent.addEventListener('step-result', function (e) {
+        renderStepResult(e.detail);
+    });
+
+    agent.addEventListener('done', function (e) {
+        if (e.detail.halted) {
+            appendMessage('assistant', 'Halted: ' + (e.detail.halt_reason || 'unknown error'));
+        } else {
+            appendMessage('assistant', 'Done.');
+        }
+        reloadPreview();
+    });
+
+    function sendChat() {
+        var ta = document.getElementById('ae-chat-text');
+        if (!ta) return;
+        var text = ta.value.trim();
+        if (!text) return;
+        ta.value = '';
+        agent.send(text, {
+            open_files: ['child-theme/page-content/' + slug + '.php'],
+            current_page_slug: slug,
+        });
+    }
+
+    var sendBtn = document.getElementById('ae-chat-send');
+    if (sendBtn) {
+        sendBtn.addEventListener('click', sendChat);
+    }
+
+    var chatTextarea = document.getElementById('ae-chat-text');
+    if (chatTextarea) {
+        chatTextarea.addEventListener('keydown', function (e) {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                e.preventDefault();
+                sendChat();
+            }
+        });
+    }
 
     // ── Utilities ────────────────────────────────────────────────────────────
 
