@@ -80,4 +80,53 @@ class Anchor_Editor_Page_Sync {
 		}
 		return ltrim( $slug, '/' );
 	}
+
+	// -----------------------------------------------------------------------
+	// ensure_post — idempotent paired-post creation
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Return the ID of the managed WP page for $slug, creating it if absent.
+	 *
+	 * Returns WP_Error with code 'slug_collision' if a non-managed page already
+	 * occupies the slug.
+	 *
+	 * @param string      $slug
+	 * @param string|null $title  Human title; derived from slug if omitted.
+	 * @return int|WP_Error
+	 */
+	public static function ensure_post( $slug, $title = null ) {
+		$slug = self::sanitize_slug( $slug );
+		if ( '' === $slug ) {
+			return new WP_Error( 'bad_slug', 'Empty or invalid slug.' );
+		}
+
+		$existing_id = self::find_post_by_slug( $slug );
+		if ( $existing_id ) {
+			if ( self::is_anchor_managed( $existing_id ) ) {
+				return $existing_id;
+			}
+			return new WP_Error(
+				'slug_collision',
+				"Slug '$slug' is already a non-managed page (ID $existing_id)."
+			);
+		}
+
+		$id = wp_insert_post(
+			array(
+				'post_type'    => 'page',
+				'post_status'  => 'publish',
+				'post_title'   => $title ? $title : self::derive_title( $slug ),
+				'post_name'    => $slug,
+				'post_content' => '',
+				'meta_input'   => array( self::META_KEY => 1 ),
+			),
+			true
+		);
+
+		if ( is_wp_error( $id ) ) {
+			return $id;
+		}
+		return (int) $id;
+	}
 }
