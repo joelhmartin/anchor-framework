@@ -82,23 +82,23 @@ class Anchor_Editor_REST_Files {
 			]
 		);
 
-		// Per-page CSS files.
+		// Per-page CSS files — slug allows slashes for nested pages (e.g. services/web-design).
 		register_rest_route(
 			$this->namespace,
-			'/files/page-css/(?P<slug>[a-z0-9_-]+)',
+			'/files/page-css/(?P<slug>[a-z0-9_\-/]+)',
 			[
 				[
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => [ $this, 'get_page_css_file' ],
 					'permission_callback' => [ $this, 'check_permission' ],
-					'args'                => [ 'slug' => [ 'required' => true, 'sanitize_callback' => 'sanitize_file_name' ] ],
+					'args'                => [ 'slug' => [ 'required' => true ] ],
 				],
 				[
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => [ $this, 'save_page_css_file' ],
 					'permission_callback' => [ $this, 'check_permission' ],
 					'args'                => [
-						'slug'     => [ 'required' => true, 'sanitize_callback' => 'sanitize_file_name' ],
+						'slug'     => [ 'required' => true ],
 						'contents' => [ 'required' => true, 'type' => 'string' ],
 					],
 				],
@@ -214,8 +214,33 @@ class Anchor_Editor_REST_Files {
 
 	// ─── Per-page CSS files ────────────────────────────────────────────
 
+	/**
+	 * Sanitize a page-CSS slug: strip traversal sequences, collapse multiple
+	 * slashes, and allow only safe characters per path segment.
+	 *
+	 * @param string $raw Raw slug from the route param (may contain slashes).
+	 * @return string|false Sanitized slug, or false if validation fails.
+	 */
+	private function sanitize_css_slug( $raw ) {
+		// Reject any traversal attempts before normalising.
+		if ( strpos( $raw, '..' ) !== false ) {
+			return false;
+		}
+		// Allow only a-z, 0-9, underscore, hyphen, and forward-slash.
+		if ( ! preg_match( '#^[a-z0-9_\-/]+$#', $raw ) ) {
+			return false;
+		}
+		// Collapse consecutive slashes and trim leading/trailing slashes.
+		$slug = trim( preg_replace( '#/+#', '/', $raw ), '/' );
+		return $slug !== '' ? $slug : false;
+	}
+
 	public function get_page_css_file( $request ) {
-		$slug = $request->get_param( 'slug' );
+		$raw  = (string) $request->get_param( 'slug' );
+		$slug = $this->sanitize_css_slug( $raw );
+		if ( false === $slug ) {
+			return new WP_REST_Response( [ 'error' => 'Invalid slug.' ], 400 );
+		}
 		$path = trailingslashit( get_stylesheet_directory() ) . 'assets/css/pages/' . $slug . '.css';
 
 		if ( ! file_exists( $path ) ) {
@@ -239,14 +264,21 @@ class Anchor_Editor_REST_Files {
 	}
 
 	public function save_page_css_file( $request ) {
-		$slug     = $request->get_param( 'slug' );
+		$raw      = (string) $request->get_param( 'slug' );
+		$slug     = $this->sanitize_css_slug( $raw );
 		$contents = $request->get_param( 'contents' );
-		$dir      = trailingslashit( get_stylesheet_directory() ) . 'assets/css/pages';
-		$path     = $dir . '/' . $slug . '.css';
+
+		if ( false === $slug ) {
+			return new WP_REST_Response( [ 'error' => 'Invalid slug.' ], 400 );
+		}
 
 		if ( null === $contents ) {
 			return new WP_REST_Response( [ 'error' => 'Missing "contents".' ], 400 );
 		}
+
+		$base_dir = trailingslashit( get_stylesheet_directory() ) . 'assets/css/pages';
+		$path     = $base_dir . '/' . $slug . '.css';
+		$dir      = dirname( $path );
 
 		if ( ! is_dir( $dir ) && ! wp_mkdir_p( $dir ) ) {
 			return new WP_REST_Response( [ 'error' => 'Could not create directory.' ], 500 );
