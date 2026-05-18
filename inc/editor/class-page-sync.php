@@ -306,7 +306,9 @@ class Anchor_Editor_Page_Sync {
 		}
 
 		if ( ! @rename( $old_path, $new_path ) ) {
-			return new WP_Error( 'rename_failed', 'Could not rename file.' );
+			$last = error_get_last();
+			$msg  = isset( $last['message'] ) ? $last['message'] : 'unknown OS error';
+			return new WP_Error( 'rename_failed', "Could not rename {$old_path} → {$new_path}: {$msg}" );
 		}
 
 		return true;
@@ -336,7 +338,9 @@ class Anchor_Editor_Page_Sync {
 		}
 
 		if ( ! @unlink( $path ) ) {
-			return new WP_Error( 'unlink_failed', "Could not delete $path." );
+			$last = error_get_last();
+			$msg  = isset( $last['message'] ) ? $last['message'] : 'unknown OS error';
+			return new WP_Error( 'unlink_failed', "Could not delete {$path}: {$msg}" );
 		}
 
 		return true;
