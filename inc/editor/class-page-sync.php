@@ -22,7 +22,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Anchor_Editor_Page_Sync {
 
-	const META_KEY = '_anchor_managed';
+	const META_KEY         = '_anchor_managed';
+	const BACKFILL_OPTION  = '_anchor_backfill_done';
 
 	// -----------------------------------------------------------------------
 	// Helpers
@@ -431,5 +432,18 @@ class Anchor_Editor_Page_Sync {
 			'created' => $created,
 			'skipped' => $skipped,
 		);
+	}
+
+	// -----------------------------------------------------------------------
+	// maybe_backfill_once — run backfill on first admin load
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Run backfill once per install. Safe to call repeatedly — only the first call does work.
+	 */
+	public static function maybe_backfill_once() {
+		if ( get_option( self::BACKFILL_OPTION ) ) return;
+		self::backfill();
+		update_option( self::BACKFILL_OPTION, time() );
 	}
 }
