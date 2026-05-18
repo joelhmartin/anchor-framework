@@ -70,19 +70,12 @@ import { createUtilityPalette } from './utility-palette.js';
         if (f) f.src = f.src;
     }
 
-    // The CSS file lives at assets/css/pages/{leaf}.css — strip any leading
-    // path segments (e.g. "services/web-design" → "web-design").
-    function cssSlugleaf(s) {
-        var str = String(s);
-        var i = str.lastIndexOf('/');
-        return i === -1 ? str : str.slice(i + 1);
-    }
-
     function hotSwapPreviewCss() {
         var f = document.getElementById('ae-preview-frame');
         if (!f || !f.contentDocument) { reloadPreview(); return; }
-        var leaf = cssSlugleaf(slug);
-        var linkSelector = 'link[href*="/assets/css/pages/' + leaf + '.css"]';
+        // Use the full hierarchical slug so services/web-design matches
+        // the correct link rather than any page whose leaf is "web-design".
+        var linkSelector = 'link[href*="/assets/css/pages/' + slug + '.css"]';
         var link = f.contentDocument.querySelector(linkSelector);
         if (!link) { reloadPreview(); return; }
         try {
@@ -94,54 +87,53 @@ import { createUtilityPalette } from './utility-palette.js';
         }
     }
 
-    // ── Save logic ───────────────────────────────────────────────────────────
+    // ── Save logic (per-panel sequencing) ────────────────────────────────────
+    //
+    // saving[panel] is false when idle; true while a request is in flight.
+    // If a new save is requested while one is in flight we let the in-flight
+    // request finish, then immediately retry once if dirty[panel] is still set.
+
+    var saving = { php: false, css: false };
 
     function save(panel) {
-        if (!dirty[panel] || !editors[panel]) return Promise.resolve();
+        if (!dirty[panel] || !editors[panel] || saving[panel]) return Promise.resolve();
+        saving[panel] = true;
         var contents = editors[panel].getValue();
+        var url, doAfter;
         if (panel === 'php') {
-            return savePHP(contents);
-        } else if (panel === 'css') {
-            return saveCSS(contents);
+            url     = restBase + 'files/page/' + encodeURIComponent(slug);
+            doAfter = function () { reloadPreview(); };
+        } else {
+            // Use the full slug (including any path separators) so nested
+            // pages don't collide on a shared CSS leaf name.
+            url     = restBase + 'files/page-css/' + slug.split('/').map(encodeURIComponent).join('/');
+            doAfter = function () { hotSwapPreviewCss(); };
         }
-        return Promise.resolve();
-    }
-
-    function savePHP(contents) {
-        var url = restBase + 'files/page/' + encodeURIComponent(slug);
         return fetch(url, {
             method: 'POST',
             headers: { 'X-WP-Nonce': nonce, 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: contents }),
         }).then(function (r) {
-            if (!r.ok) throw new Error('Save PHP failed: ' + r.status);
+            if (!r.ok) throw new Error('Save ' + panel.toUpperCase() + ' failed: ' + r.status);
             return r.json();
         }).then(function () {
-            setDirty('php', false);
-            reloadPreview();
-        });
-    }
-
-    function saveCSS(contents) {
-        var leaf = cssSlugleaf(slug);
-        var url  = restBase + 'files/page-css/' + encodeURIComponent(leaf);
-        return fetch(url, {
-            method: 'POST',
-            headers: { 'X-WP-Nonce': nonce, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: contents }),
-        }).then(function (r) {
-            if (!r.ok) throw new Error('Save CSS failed: ' + r.status);
-            return r.json();
+            // Only clear dirty if no new edits landed while the request was in flight.
+            if (editors[panel].getValue() === contents) {
+                setDirty(panel, false);
+            }
+            doAfter();
+        }).catch(function (err) {
+            console.error('[anchor-editor] save error (' + panel + '):', err);
         }).then(function () {
-            setDirty('css', false);
-            hotSwapPreviewCss();
+            saving[panel] = false;
+            // Retry if content changed during the in-flight request.
+            if (dirty[panel]) save(panel);
         });
     }
 
     // ── Layout ──────────────────────────────────────────────────────────────
 
     var previewSrc = homeUrl + (homeUrl.slice(-1) === '/' ? '' : '/') + slug;
-    var leaf = cssSlugleaf(slug);
 
     host.innerHTML = [
         '<div class="ae-shell">',
@@ -167,7 +159,7 @@ import { createUtilityPalette } from './utility-palette.js';
         '    <section class="ae-panel" data-panel="css" hidden>',
         '      <div class="ae-empty" id="ae-css-empty">',
         '        <p>This page doesn\'t have a custom CSS file yet.</p>',
-        '        <p><small>Path: <code>child-theme/assets/css/pages/' + escapeHtml(leaf) + '.css</code></small></p>',
+        '        <p><small>Path: <code>child-theme/assets/css/pages/' + escapeHtml(slug) + '.css</code></small></p>',
         '        <button class="ae-btn" id="ae-create-css">Create page CSS</button>',
         '      </div>',
         '      <div class="ae-monaco-host" id="ae-monaco-css" hidden></div>',
@@ -234,11 +226,17 @@ import { createUtilityPalette } from './utility-palette.js';
     var saveBtn = host.querySelector('.ae-save');
     if (saveBtn) {
         saveBtn.addEventListener('click', function () {
-            var active = host.querySelector('.ae-tab.is-active');
-            var panel = active ? active.getAttribute('data-tab') : 'php';
-            save(panel).catch(function (err) {
-                console.error('[anchor-editor] save error:', err);
+            // Save every dirty panel, not just the active one, so the button
+            // never silently no-ops when a non-active panel has unsaved edits.
+            var ops = [];
+            ['php', 'css'].forEach(function (panel) {
+                if (dirty[panel]) ops.push(save(panel));
             });
+            if (ops.length) {
+                Promise.all(ops).catch(function (err) {
+                    console.error('[anchor-editor] save error:', err);
+                });
+            }
         });
     }
 
@@ -275,6 +273,12 @@ import { createUtilityPalette } from './utility-palette.js';
     });
 
     // ── Page-flag chips ──────────────────────────────────────────────────────
+    //
+    // currentFlags is the authoritative in-memory copy of the server state.
+    // Chip clicks derive the OTHER flag's value from here, not from DOM classes,
+    // so stale DOM state can't accidentally clear a flag the user didn't touch.
+
+    var currentFlags = { no_header: false, no_footer: false };
 
     function loadFlags() {
         if (!slug) return;
@@ -285,8 +289,10 @@ import { createUtilityPalette } from './utility-palette.js';
             return r.json();
         }).then(function (flags) {
             if (!flags) return;
-            updateChip('no-header', !!flags.no_header);
-            updateChip('no-footer', !!flags.no_footer);
+            currentFlags.no_header = !!flags.no_header;
+            currentFlags.no_footer = !!flags.no_footer;
+            updateChip('no-header', currentFlags.no_header);
+            updateChip('no-footer', currentFlags.no_footer);
         }).catch(function () {});
     }
 
@@ -301,19 +307,22 @@ import { createUtilityPalette } from './utility-palette.js';
     host.querySelectorAll('.ae-chip').forEach(function (chip) {
         chip.addEventListener('click', function () {
             var flag  = chip.dataset.flag;
-            var isOff = !chip.classList.contains('is-off'); // toggle
-            // Build POST body: no_header / no_footer booleans, keep the other as-is
-            var body = {
-                no_header: flag === 'no-header' ? isOff : !!host.querySelector('.ae-chip[data-flag="no-header"]').classList.contains('is-off'),
-                no_footer: flag === 'no-footer' ? isOff : !!host.querySelector('.ae-chip[data-flag="no-footer"]').classList.contains('is-off'),
-            };
+            // Derive the new value for the clicked flag by toggling currentFlags,
+            // and keep the OTHER flag's value from currentFlags (not DOM classes).
+            var newNoHeader = flag === 'no-header' ? !currentFlags.no_header : currentFlags.no_header;
+            var newNoFooter = flag === 'no-footer' ? !currentFlags.no_footer : currentFlags.no_footer;
+            var body = { no_header: newNoHeader, no_footer: newNoFooter };
             fetch(restBase + 'editor/page-flags/' + encodeURIComponent(slug), {
                 method: 'POST',
                 headers: { 'X-WP-Nonce': nonce, 'Content-Type': 'application/json' },
                 body: JSON.stringify(body),
             }).then(function (r) {
                 if (!r.ok) return;
-                updateChip(flag, isOff);
+                // Commit new values to in-memory state only after a successful save.
+                currentFlags.no_header = newNoHeader;
+                currentFlags.no_footer = newNoFooter;
+                updateChip('no-header', currentFlags.no_header);
+                updateChip('no-footer', currentFlags.no_footer);
                 reloadPreview();
             }).catch(function () {});
         });
@@ -449,8 +458,7 @@ import { createUtilityPalette } from './utility-palette.js';
 
     function bootCssIfExists(monaco) {
         monacoRef = monaco;
-        var cssLeaf = cssSlugleaf(slug);
-        var url = restBase + 'files/page-css/' + encodeURIComponent(cssLeaf);
+        var url = restBase + 'files/page-css/' + slug.split('/').map(encodeURIComponent).join('/');
         return fetch(url, {
             headers: { 'X-WP-Nonce': nonce },
         }).then(function (r) {
@@ -523,17 +531,19 @@ import { createUtilityPalette } from './utility-palette.js';
         stepsEl.className = 'ae-plan-steps-list';
 
         (planData.steps || []).forEach(function (step, i) {
-            var row = document.createElement('div');
-            row.className = 'ae-plan-step';
+            // Wrap checkbox + text in <label> so the control is accessible
+            // without explicit id/htmlFor attributes.
+            var labelEl = document.createElement('label');
+            labelEl.className = 'ae-plan-step';
             var cb = document.createElement('input');
             cb.type = 'checkbox';
             cb.checked = true;
             cb.dataset.stepIndex = i;
-            var label = document.createElement('span');
-            label.textContent = step.tool + ' — ' + (step.rationale || '');
-            row.appendChild(cb);
-            row.appendChild(label);
-            stepsEl.appendChild(row);
+            var span = document.createElement('span');
+            span.textContent = step.tool + ' — ' + (step.rationale || '');
+            labelEl.appendChild(cb);
+            labelEl.appendChild(span);
+            stepsEl.appendChild(labelEl);
         });
         wrapper.appendChild(stepsEl);
 
@@ -586,8 +596,47 @@ import { createUtilityPalette } from './utility-palette.js';
         } else {
             appendMessage('assistant', 'Done.');
         }
-        reloadPreview();
+        // Reload Monaco editors from disk so they reflect any agent writes,
+        // then reload the preview.
+        refreshEditorsAfterAgent().then(reloadPreview);
     });
+
+    function refreshEditorsAfterAgent() {
+        var ops = [];
+        if (editors.php) {
+            var phpUrl = restBase + 'files/page/' + encodeURIComponent(slug);
+            ops.push(
+                fetch(phpUrl, { headers: { 'X-WP-Nonce': nonce } })
+                    .then(function (r) { return r.ok ? r.json() : null; })
+                    .then(function (data) {
+                        if (!data) return;
+                        var fresh = data.contents || '';
+                        if (editors.php.getValue() !== fresh) {
+                            editors.php.setValue(fresh);
+                            setDirty('php', false);
+                        }
+                    })
+                    .catch(function () {})
+            );
+        }
+        if (editors.css) {
+            var cssUrl = restBase + 'files/page-css/' + slug.split('/').map(encodeURIComponent).join('/');
+            ops.push(
+                fetch(cssUrl, { headers: { 'X-WP-Nonce': nonce } })
+                    .then(function (r) { return r.ok ? r.json() : null; })
+                    .then(function (data) {
+                        if (!data || !data.exists) return;
+                        var fresh = data.contents || '';
+                        if (editors.css.getValue() !== fresh) {
+                            editors.css.setValue(fresh);
+                            setDirty('css', false);
+                        }
+                    })
+                    .catch(function () {})
+            );
+        }
+        return Promise.all(ops);
+    }
 
     function sendChat() {
         var ta = document.getElementById('ae-chat-text');
@@ -595,9 +644,16 @@ import { createUtilityPalette } from './utility-palette.js';
         var text = ta.value.trim();
         if (!text) return;
         ta.value = '';
-        agent.send(text, {
-            open_files: ['child-theme/page-content/' + slug + '.php'],
-            current_page_slug: slug,
+        // Flush any dirty buffers before the agent reads files from disk.
+        var flushOps = [];
+        ['php', 'css'].forEach(function (panel) {
+            if (dirty[panel]) flushOps.push(save(panel));
+        });
+        Promise.all(flushOps).then(function () {
+            agent.send(text, {
+                open_files: ['child-theme/page-content/' + slug + '.php'],
+                current_page_slug: slug,
+            });
         });
     }
 
