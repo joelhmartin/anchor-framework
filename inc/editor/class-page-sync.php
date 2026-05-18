@@ -277,4 +277,80 @@ class Anchor_Editor_Page_Sync {
 		// Soft state: file stays on disk. Restoring from WP trash brings the page back live.
 		return true;
 	}
+
+	// -----------------------------------------------------------------------
+	// backfill — pair existing orphan page-content files
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Walk the child-theme's page-content/ directory and ensure every .php file
+	 * has a paired, managed WP page post.
+	 *
+	 * Per-file logic:
+	 *   - Already paired (managed post exists for slug) → skip silently.
+	 *   - Slug occupied by non-managed post → skip with reason 'slug taken by non-managed page'.
+	 *   - No post found → call ensure_post() and add to created list.
+	 *
+	 * @return array { created: array<{slug, post_id}>, skipped: array<{slug, reason, post_id?}> }
+	 */
+	public static function backfill() {
+		$base = trailingslashit( get_stylesheet_directory() ) . 'page-content/';
+		if ( ! is_dir( $base ) ) {
+			return array(
+				'created' => array(),
+				'skipped' => array(),
+			);
+		}
+
+		$created = array();
+		$skipped = array();
+
+		$iter = new RecursiveIteratorIterator(
+			new RecursiveDirectoryIterator( $base, RecursiveDirectoryIterator::SKIP_DOTS )
+		);
+
+		foreach ( $iter as $file ) {
+			if ( 'php' !== $file->getExtension() ) {
+				continue;
+			}
+
+			$rel  = ltrim( str_replace( $base, '', $file->getPathname() ), '/' );
+			$slug = preg_replace( '/\.php$/', '', $rel );
+			if ( '' === $slug ) {
+				continue;
+			}
+
+			$existing = self::find_post_by_slug( $slug );
+			if ( $existing ) {
+				if ( ! self::is_anchor_managed( $existing ) ) {
+					$skipped[] = array(
+						'slug'    => $slug,
+						'reason'  => 'slug taken by non-managed page',
+						'post_id' => $existing,
+					);
+				}
+				// If managed, silently skip.
+				continue;
+			}
+
+			$post_id = self::ensure_post( $slug );
+			if ( is_wp_error( $post_id ) ) {
+				$skipped[] = array(
+					'slug'   => $slug,
+					'reason' => $post_id->get_error_message(),
+				);
+				continue;
+			}
+
+			$created[] = array(
+				'slug'    => $slug,
+				'post_id' => $post_id,
+			);
+		}
+
+		return array(
+			'created' => $created,
+			'skipped' => $skipped,
+		);
+	}
 }
