@@ -20,6 +20,9 @@
  *   POST anchor-assistant/v1/agent/execute          → { results, halted, halt_reason }
  *   POST anchor-assistant/v1/ai/chat                → { reply }
  *   GET  anchor-assistant/v1/editor/utilities       → { classes: [] }
+ *   GET  wp/v2/pages/{id}?context=edit              → WP page object (title, slug, featured_media)
+ *   GET  wp/v2/media/{id}?context=edit              → media attachment (source_url)
+ *   POST anchor-assistant/v1/editor/page-meta       → { post_id, title, slug, page_uri, ... }
  */
 
 import { createAgentSession } from './agent-core.js';
@@ -181,6 +184,28 @@ import { createUtilityPalette } from './utility-palette.js';
         '    <aside class="ae-preview">',
         '      <iframe id="ae-preview-frame" src="' + escapeAttr(previewSrc) + '" title="Page preview"></iframe>',
         '    </aside>',
+        '    <aside class="ae-sidebar">',
+        '      <section class="ae-side-block">',
+        '        <h3>Page</h3>',
+        '        <label>Title</label>',
+        '        <input type="text" id="ae-title" />',
+        '        <label>Slug (leaf)</label>',
+        '        <input type="text" id="ae-slug" />',
+        '        <label>Featured image</label>',
+        '        <button class="ae-btn ae-side-btn" id="ae-pick-featured">Choose</button>',
+        '        <button class="ae-btn ae-side-btn ae-side-btn-secondary" id="ae-clear-featured" hidden>Remove</button>',
+        '        <div id="ae-featured-preview"></div>',
+        '      </section>',
+        '      <section class="ae-side-block">',
+        '        <h3>SEO</h3>',
+        '        <a class="ae-btn ae-side-btn" id="ae-yoast-bypass" href="" target="_blank" rel="noopener">Edit SEO →</a>',
+        '        <p class="ae-side-note">Opens the classic WP edit screen with our takeover bypassed so Yoast renders natively.</p>',
+        '      </section>',
+        '      <section class="ae-side-block">',
+        '        <h3>Anchor</h3>',
+        '        <a class="ae-btn ae-side-btn" id="ae-open-ide" href="">Open full IDE →</a>',
+        '      </section>',
+        '    </aside>',
         '  </main>',
         '</div>',
     ].join('\n');
@@ -295,6 +320,88 @@ import { createUtilityPalette } from './utility-palette.js';
     });
 
     loadFlags();
+
+    // ── Right sidebar — page meta ────────────────────────────────────────────
+
+    async function loadPostMeta() {
+        // Read via WP core REST. We need an admin-context user, so include the nonce.
+        const r = await fetch(`/wp-json/wp/v2/pages/${postId}?context=edit`, {
+            headers: { 'X-WP-Nonce': nonce },
+            credentials: 'same-origin',
+        });
+        if (!r.ok) return;
+        const p = await r.json();
+        document.getElementById('ae-title').value = (p.title && (p.title.raw ?? p.title.rendered)) || '';
+        // slug input shows the LEAF only (post_name is the leaf slug).
+        document.getElementById('ae-slug').value = p.slug || '';
+
+        // Featured image preview
+        if (p.featured_media) {
+            const m = await fetch(`/wp-json/wp/v2/media/${p.featured_media}?context=edit`, {
+                headers: { 'X-WP-Nonce': nonce },
+            }).then(function(res) { return res.json(); });
+            setFeaturedPreview(m.source_url);
+        }
+
+        document.getElementById('ae-yoast-bypass').href = cfg.editUrlBypass || '#';
+        document.getElementById('ae-open-ide').href = `admin.php?page=anchor-live-editor#open=child-theme/page-content/${slug}.php`;
+    }
+
+    function setFeaturedPreview(srcUrl) {
+        var wrap = document.getElementById('ae-featured-preview');
+        var removeBtn = document.getElementById('ae-clear-featured');
+        if (srcUrl) {
+            wrap.innerHTML = '<img src="' + escapeAttr(srcUrl) + '" alt="" />';
+            removeBtn.hidden = false;
+        } else {
+            wrap.innerHTML = '';
+            removeBtn.hidden = true;
+        }
+    }
+
+    async function savePostMeta(patch) {
+        var body = Object.assign({ post_id: postId }, patch);
+        const r = await fetch(restBase + 'editor/page-meta', {
+            method: 'POST',
+            headers: { 'X-WP-Nonce': nonce, 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        if (!r.ok) {
+            console.error('[anchor-editor] save meta failed', await r.text());
+        }
+        return r.ok ? r.json() : null;
+    }
+
+    // Wire sidebar inputs
+    document.getElementById('ae-title').addEventListener('blur', function() {
+        savePostMeta({ title: document.getElementById('ae-title').value });
+    });
+    document.getElementById('ae-slug').addEventListener('blur', function() {
+        savePostMeta({ slug: document.getElementById('ae-slug').value });
+    });
+
+    // Featured image picker (wp.media)
+    document.getElementById('ae-pick-featured').addEventListener('click', function(e) {
+        e.preventDefault();
+        if (!window.wp || !window.wp.media) {
+            alert('Media library unavailable.');
+            return;
+        }
+        var frame = wp.media({ title: 'Featured image', multiple: false });
+        frame.on('select', function() {
+            var att = frame.state().get('selection').first().toJSON();
+            savePostMeta({ featured_id: att.id });
+            setFeaturedPreview(att.url);
+        });
+        frame.open();
+    });
+
+    document.getElementById('ae-clear-featured').addEventListener('click', function() {
+        savePostMeta({ featured_id: 0 });
+        setFeaturedPreview('');
+    });
+
+    loadPostMeta();
 
     // ── Monaco loader ────────────────────────────────────────────────────────
 
