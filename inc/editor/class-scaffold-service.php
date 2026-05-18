@@ -95,6 +95,32 @@ class Anchor_Editor_Scaffold_Service {
 			return $write;
 		}
 
+		// Pair with a WP page post.
+		if ( class_exists( 'Anchor_Editor_Page_Sync' ) ) {
+			$post_id = Anchor_Editor_Page_Sync::ensure_post( $slug );
+			if ( is_wp_error( $post_id ) ) {
+				// Roll back the file we just wrote so we don't leave an orphan.
+				if ( file_exists( $dest_abs ) ) {
+					$unlinked = unlink( $dest_abs );
+					if ( ! $unlinked ) {
+						$last = error_get_last();
+						$os   = isset( $last['message'] ) ? $last['message'] : 'unknown OS error';
+						$post_id->add( 'rollback_unlink_failed', "Pairing failed AND scaffold rollback unlink failed for {$dest_abs}: {$os}" );
+					}
+				}
+				return $post_id;
+			}
+			return [
+				'success'  => true,
+				'path'     => $write['path'] ?? $dest_abs,
+				'slug'     => $slug,
+				'template' => $template_key,
+				'post_id'  => $post_id,
+				'edit_url' => Anchor_Editor_Page_Sync::get_edit_url( $post_id ),
+			];
+		}
+
+		// Page_Sync unavailable (defensive — should not happen in production): fall back to legacy response.
 		return [
 			'success'  => true,
 			'path'     => $write['path'] ?? $dest_abs,

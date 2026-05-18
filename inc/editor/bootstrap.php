@@ -44,6 +44,13 @@ require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-utilities.php';
 require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-page-flags.php';
 require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-paste-html.php';
 
+// WP-native editor (Phase 5)
+require_once Anchor_Editor::path() . 'inc/editor/class-page-sync.php';
+require_once Anchor_Editor::path() . 'inc/editor/class-page-sync-hooks.php';
+require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-sync-pages.php';
+require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-page-meta.php';
+require_once Anchor_Editor::path() . 'inc/editor/class-edit-link-filter.php';
+
 // AI module
 require_once Anchor_Editor::path() . 'inc/ai/class-ai-handler.php';
 require_once Anchor_Editor::path() . 'inc/ai/class-prompt-builder.php';
@@ -69,6 +76,7 @@ require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-agent.php';
 require_once Anchor_Editor::path() . 'inc/editor/admin/class-editor-page.php';
 require_once Anchor_Editor::path() . 'inc/editor/admin/class-settings-page.php';
 require_once Anchor_Editor::path() . 'inc/editor/admin/class-ide-page.php';
+require_once Anchor_Editor::path() . 'inc/editor/admin/class-editor-screen.php';
 
 // Frontend chat
 require_once Anchor_Editor::path() . 'inc/editor/frontend/class-frontend-chat.php';
@@ -96,5 +104,14 @@ function anchor_editor_init() {
 	Anchor_Editor_REST_PageFlags::instance();
 	Anchor_Editor_REST_PasteHTML::instance();
 	Anchor_Editor_IDE_Page::instance();
+	Anchor_Editor_Screen::instance();
+	Anchor_Editor_Page_Sync_Hooks::instance();
+	Anchor_Editor_REST_SyncPages::instance();
+	Anchor_Editor_REST_Page_Meta::instance();
+	Anchor_Editor_Edit_Link_Filter::instance();
+	add_action( 'admin_init', [ 'Anchor_Editor_Page_Sync', 'maybe_backfill_once' ] );
 }
 add_action( 'after_setup_theme', 'anchor_editor_init', 20 );
+
+// WP-CLI command (self-registers under WP_CLI guard — load outside anchor_editor_init).
+require_once Anchor_Editor::path() . 'inc/editor/class-page-sync-cli.php';
