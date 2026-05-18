@@ -46,6 +46,7 @@ require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-paste-html.php';
 
 // WP-native editor (Phase 5)
 require_once Anchor_Editor::path() . 'inc/editor/class-page-sync.php';
+require_once Anchor_Editor::path() . 'inc/editor/class-page-sync-hooks.php';
 
 // AI module
 require_once Anchor_Editor::path() . 'inc/ai/class-ai-handler.php';
@@ -99,5 +100,6 @@ function anchor_editor_init() {
 	Anchor_Editor_REST_PageFlags::instance();
 	Anchor_Editor_REST_PasteHTML::instance();
 	Anchor_Editor_IDE_Page::instance();
+	Anchor_Editor_Page_Sync_Hooks::instance();
 }
 add_action( 'after_setup_theme', 'anchor_editor_init', 20 );
