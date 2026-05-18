@@ -42,14 +42,9 @@ class Anchor_Editor_Page {
             'anchor',
             [ $this, 'render_page' ]
         );
-        add_submenu_page(
-            'anchor',
-            __( 'Live Editor', 'anchor' ),
-            __( 'Live Editor', 'anchor' ),
-            'manage_options',
-            'anchor-live-editor',
-            [ $this, 'render_live_editor' ]
-        );
+        // Live Editor submenu removed: route is still registered by Anchor_Editor_IDE_Page::instance()
+        // and accessible via ?page=anchor-live-editor for power users. The new Anchor editor screen
+        // (Anchor_Editor_Screen) is what regular page editing flows through.
     }
 
     public function enqueue_assets( $hook ) {
