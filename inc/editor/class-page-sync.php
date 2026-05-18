@@ -236,4 +236,45 @@ class Anchor_Editor_Page_Sync {
 
 		return true;
 	}
+
+	// -----------------------------------------------------------------------
+	// delete + trash
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Permanently remove page-content/{slug}.php from the filesystem.
+	 *
+	 * Returns true if the file is already absent (idempotent).
+	 *
+	 * @param string $slug
+	 * @return true|WP_Error
+	 */
+	public static function delete( $slug ) {
+		$slug = self::sanitize_slug( $slug );
+		if ( '' === $slug ) {
+			return new WP_Error( 'bad_slug', 'Empty or invalid slug.' );
+		}
+
+		$path = trailingslashit( get_stylesheet_directory() ) . 'page-content/' . $slug . '.php';
+		if ( ! file_exists( $path ) ) {
+			return true; // Already gone; idempotent.
+		}
+
+		if ( ! @unlink( $path ) ) {
+			return new WP_Error( 'unlink_failed', "Could not delete $path." );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Noop on the filesystem — file remains so the page can be restored from WP trash.
+	 *
+	 * @param string $slug Unused; present for API symmetry.
+	 * @return true
+	 */
+	public static function trash( $slug ) {
+		// Soft state: file stays on disk. Restoring from WP trash brings the page back live.
+		return true;
+	}
 }
