@@ -74,6 +74,7 @@ require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-agent.php';
 require_once Anchor_Editor::path() . 'inc/editor/admin/class-editor-page.php';
 require_once Anchor_Editor::path() . 'inc/editor/admin/class-settings-page.php';
 require_once Anchor_Editor::path() . 'inc/editor/admin/class-ide-page.php';
+require_once Anchor_Editor::path() . 'inc/editor/admin/class-editor-screen.php';
 
 // Frontend chat
 require_once Anchor_Editor::path() . 'inc/editor/frontend/class-frontend-chat.php';
@@ -101,6 +102,7 @@ function anchor_editor_init() {
 	Anchor_Editor_REST_PageFlags::instance();
 	Anchor_Editor_REST_PasteHTML::instance();
 	Anchor_Editor_IDE_Page::instance();
+	Anchor_Editor_Screen::instance();
 	Anchor_Editor_Page_Sync_Hooks::instance();
 	Anchor_Editor_REST_SyncPages::instance();
 	add_action( 'admin_init', [ 'Anchor_Editor_Page_Sync', 'maybe_backfill_once' ] );
