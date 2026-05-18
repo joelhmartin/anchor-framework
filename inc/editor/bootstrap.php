@@ -47,6 +47,7 @@ require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-paste-html.php';
 // WP-native editor (Phase 5)
 require_once Anchor_Editor::path() . 'inc/editor/class-page-sync.php';
 require_once Anchor_Editor::path() . 'inc/editor/class-page-sync-hooks.php';
+require_once Anchor_Editor::path() . 'inc/editor/api/class-rest-sync-pages.php';
 
 // AI module
 require_once Anchor_Editor::path() . 'inc/ai/class-ai-handler.php';
@@ -101,5 +102,10 @@ function anchor_editor_init() {
 	Anchor_Editor_REST_PasteHTML::instance();
 	Anchor_Editor_IDE_Page::instance();
 	Anchor_Editor_Page_Sync_Hooks::instance();
+	Anchor_Editor_REST_SyncPages::instance();
+	add_action( 'admin_init', [ 'Anchor_Editor_Page_Sync', 'maybe_backfill_once' ] );
 }
 add_action( 'after_setup_theme', 'anchor_editor_init', 20 );
+
+// WP-CLI command (self-registers under WP_CLI guard — load outside anchor_editor_init).
+require_once Anchor_Editor::path() . 'inc/editor/class-page-sync-cli.php';
