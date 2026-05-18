@@ -75,11 +75,22 @@ class Anchor_Editor_Page_Sync {
 	 * @return string
 	 */
 	private static function sanitize_slug( $slug ) {
-		$slug = (string) $slug;
+		// Trim leading/trailing slashes before any other check.
+		$slug = trim( (string) $slug, '/' );
+		if ( '' === $slug ) {
+			return '';
+		}
 		if ( ! preg_match( '#^[A-Za-z0-9_\-/]+$#', $slug ) ) {
 			return '';
 		}
-		return ltrim( $slug, '/' );
+		// Reject paths with empty segments, e.g. foo//bar.
+		$segments = explode( '/', $slug );
+		foreach ( $segments as $seg ) {
+			if ( '' === $seg ) {
+				return '';
+			}
+		}
+		return $slug;
 	}
 
 	// -----------------------------------------------------------------------
