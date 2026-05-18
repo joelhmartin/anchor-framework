@@ -110,10 +110,10 @@ class Anchor_Editor_Screen {
             echo '<div class="wrap"><h1>Anchor Editor</h1><p>That page isn\'t managed by Anchor.</p></div>';
             return;
         }
-        $slug = $post->post_name;
+        $slug = get_page_uri( $post );
         echo '<div class="wrap">';
         echo '<h1 class="wp-heading-inline">' . esc_html( $post->post_title ) . '</h1> ';
-        echo '<a href="' . esc_url( get_permalink( $post_id ) ) . '" class="page-title-action" target="_blank">View ↗</a>';
+        echo '<a href="' . esc_url( get_permalink( $post_id ) ) . '" class="page-title-action" target="_blank" rel="noopener noreferrer">View ↗</a>';
         echo '<div id="anchor-editor-app" data-post-id="' . esc_attr( $post_id ) . '" data-slug="' . esc_attr( $slug ) . '" data-loading="1">';
         echo '</div>';
         echo '</div>';

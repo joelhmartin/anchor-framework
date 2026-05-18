@@ -26,7 +26,7 @@ class Anchor_Editor_Edit_Link_Filter {
     }
 
     public function maybe_redirect( $link, $post_id, $context ) {
-        if ( isset( $_GET['anchor_bypass'] ) ) return $link;
+        if ( isset( $_GET['anchor_bypass'] ) && '1' === (string) $_GET['anchor_bypass'] ) return $link;
         if ( ! Anchor_Editor_Page_Sync::is_anchor_managed( $post_id ) ) return $link;
 
         $url = admin_url( 'admin.php?page=anchor-editor&post=' . (int) $post_id );
