@@ -28,13 +28,18 @@ class Anchor_Editor_Frontend_Chat {
     }
 
     /**
-     * Only load for admins who can manage options.
+     * Only load for logged-in admins viewing a singular Anchor-managed page.
      */
     private function should_load() {
-        return is_user_logged_in()
-            && current_user_can( 'manage_options' )
-            && ! is_admin()
-            && Anchor_AI_Handler::instance()->is_configured();
+        if ( ! is_user_logged_in() ) return false;
+        if ( ! current_user_can( 'manage_options' ) ) return false;
+        if ( is_admin() ) return false;
+        if ( ! Anchor_AI_Handler::instance()->is_configured() ) return false;
+        if ( ! is_singular() ) return false;
+        $post_id = get_queried_object_id();
+        if ( ! $post_id ) return false;
+        if ( ! class_exists( 'Anchor_Editor_Page_Sync' ) ) return false;
+        return Anchor_Editor_Page_Sync::is_anchor_managed( $post_id );
     }
 
     /**
@@ -70,36 +75,30 @@ class Anchor_Editor_Frontend_Chat {
                 true
             );
 
-            // Compute files-for-this-page.
-            $files = [];
-            $slug  = '';
-            if ( function_exists( 'anchor_determine_page_slug' ) ) {
-                $slug = (string) anchor_determine_page_slug();
-            } elseif ( is_singular() ) {
-                $slug = sanitize_title( get_post_field( 'post_name', get_queried_object_id() ) );
-            }
-            if ( $slug ) {
-                $page_php = trailingslashit( get_stylesheet_directory() ) . 'page-content/' . $slug . '.php';
-                if ( file_exists( $page_php ) ) {
-                    $files[] = [
-                        'label' => $slug . '.php',
-                        'path'  => 'child-theme/page-content/' . $slug . '.php',
-                    ];
-                }
-                $page_css = trailingslashit( get_stylesheet_directory() ) . 'assets/css/pages/' . $slug . '.css';
-                if ( file_exists( $page_css ) ) {
-                    $files[] = [
-                        'label' => $slug . '.css',
-                        'path'  => 'child-theme/assets/css/pages/' . $slug . '.css',
-                    ];
+            $post_id  = get_queried_object_id();
+            $post     = get_post( $post_id );
+            $slug     = $post ? get_page_uri( $post ) : '';
+
+            // Read current page flags (no-header / no-footer).
+            // Anchor_Editor_Page_Flags::get_flags( $slug ) returns
+            // [ 'no_header' => bool, 'no_footer' => bool ].
+            $flags = [ 'no_header' => false, 'no_footer' => false ];
+            if ( $slug && class_exists( 'Anchor_Editor_Page_Flags' ) ) {
+                $read = Anchor_Editor_Page_Flags::get_flags( $slug );
+                if ( is_array( $read ) ) {
+                    $flags['no_header'] = ! empty( $read['no_header'] );
+                    $flags['no_footer'] = ! empty( $read['no_footer'] );
                 }
             }
 
             wp_localize_script( 'anchor-editor-pencil', 'anchorPencil', [
-                'restBase'        => rest_url( 'anchor-assistant/v1/' ),
-                'nonce'           => wp_create_nonce( 'wp_rest' ),
-                'files'           => $files,
-                'currentPageSlug' => $slug,
+                'restBase' => rest_url( 'anchor-assistant/v1/' ),
+                'nonce'    => wp_create_nonce( 'wp_rest' ),
+                'postId'   => $post_id,
+                'slug'     => $slug,
+                'title'    => $post ? $post->post_title : '',
+                'flags'    => $flags,
+                'editUrl'  => admin_url( 'admin.php?page=anchor-editor&post=' . $post_id ),
             ] );
         }
     }
