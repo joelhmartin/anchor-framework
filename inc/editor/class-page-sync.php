@@ -188,4 +188,52 @@ class Anchor_Editor_Page_Sync {
 	public static function get_edit_url( $post_id ) {
 		return admin_url( 'admin.php?page=anchor-editor&post=' . (int) $post_id );
 	}
+
+	// -----------------------------------------------------------------------
+	// rename — sync slug rename to filesystem
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Rename page-content/{old_slug}.php → page-content/{new_slug}.php.
+	 *
+	 * Does NOT modify the WP post (the hook class drives renames from post_updated).
+	 * Creates the destination directory if it doesn't exist (nested slugs).
+	 *
+	 * @param string $old_slug
+	 * @param string $new_slug
+	 * @return true|WP_Error
+	 */
+	public static function rename( $old_slug, $new_slug ) {
+		$old = self::sanitize_slug( $old_slug );
+		$new = self::sanitize_slug( $new_slug );
+
+		if ( '' === $old || '' === $new ) {
+			return new WP_Error( 'bad_slug', 'Empty or invalid slug.' );
+		}
+		if ( $old === $new ) {
+			return true;
+		}
+
+		$base     = trailingslashit( get_stylesheet_directory() ) . 'page-content/';
+		$old_path = $base . $old . '.php';
+		$new_path = $base . $new . '.php';
+
+		if ( ! file_exists( $old_path ) ) {
+			return new WP_Error( 'missing_file', "Source $old.php not found." );
+		}
+		if ( file_exists( $new_path ) ) {
+			return new WP_Error( 'collision', "Destination $new.php already exists." );
+		}
+
+		$new_dir = dirname( $new_path );
+		if ( ! is_dir( $new_dir ) && ! wp_mkdir_p( $new_dir ) ) {
+			return new WP_Error( 'mkdir_failed', "Could not create directory $new_dir." );
+		}
+
+		if ( ! @rename( $old_path, $new_path ) ) {
+			return new WP_Error( 'rename_failed', 'Could not rename file.' );
+		}
+
+		return true;
+	}
 }
