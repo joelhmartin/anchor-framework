@@ -1,0 +1,143 @@
+/**
+ * Anchor Editor — WP-native admin page styles.
+ * Mounts inside #anchor-editor-app on admin.php?page=anchor-editor&post={id}.
+ *
+ * Phase 3.A: shell layout, toolbar, tabs, Monaco host, preview iframe.
+ */
+
+#anchor-editor-app {
+    padding: 0;
+    margin-top: 16px;
+}
+
+.ae-shell {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 32px - 80px);
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+/* ── Toolbar ── */
+.ae-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid #ddd;
+    background: #fafafa;
+    flex-shrink: 0;
+}
+
+.ae-toolbar-left,
+.ae-toolbar-right {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+/* ── Tabs ── */
+.ae-tab {
+    background: none;
+    border: 0;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 13px;
+    color: #555;
+    border-bottom: 2px solid transparent;
+    line-height: 1.4;
+    transition: color 0.1s, border-bottom-color 0.1s;
+}
+
+.ae-tab:hover {
+    color: #1d2327;
+}
+
+.ae-tab.is-active {
+    color: #1d2327;
+    border-bottom-color: #2271b1;
+}
+
+.ae-tab.is-dirty::after {
+    content: '•';
+    margin-left: 4px;
+    color: #d63638;
+}
+
+/* ── Shared button ── */
+.ae-btn {
+    padding: 5px 12px;
+    border: 1px solid #ccc;
+    background: #f6f7f7;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 3px;
+    font-size: 13px;
+    line-height: 1.4;
+    display: inline-flex;
+    align-items: center;
+}
+
+.ae-btn:hover {
+    background: #e9e9e9;
+    color: inherit;
+}
+
+.ae-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Main area: editor + preview side by side ── */
+.ae-main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    flex: 1;
+    min-height: 0;
+}
+
+/* ── Editor panels ── */
+.ae-panel {
+    overflow: hidden;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.ae-panel[hidden] {
+    display: none;
+}
+
+.ae-monaco-host {
+    flex: 1;
+    min-height: 0;
+}
+
+/* ── Preview iframe ── */
+.ae-preview {
+    border-left: 1px solid #ddd;
+    overflow: hidden;
+}
+
+.ae-preview iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+}
+
+/* ── Placeholder panels ── */
+.ae-panel-placeholder {
+    padding: 16px;
+    color: #666;
+    font-size: 13px;
+}
+
+/* ── WP admin gutter adjustment ── */
+.wrap > .wp-heading-inline + .page-title-action {
+    margin-bottom: 12px;
+}

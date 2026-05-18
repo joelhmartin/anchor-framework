@@ -50,6 +50,16 @@ const targets = [
     format: 'iife',
     target: ['chrome90', 'firefox88', 'safari14'],
   },
+
+  // NEW — WP-native Anchor editor bundle (Phase 3)
+  {
+    entryPoints: ['assets/editor/js/anchor-editor.js'],
+    outfile: 'dist/anchor-editor.min.js',
+    bundle: true,
+    minify: true,
+    format: 'iife',
+    target: ['chrome90', 'firefox88', 'safari14'],
+  },
 ];
 
 await mkdir('dist', { recursive: true });
