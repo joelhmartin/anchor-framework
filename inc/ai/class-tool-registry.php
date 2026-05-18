@@ -113,11 +113,28 @@ class Anchor_AI_Tool_Registry {
 			if ( ! class_exists( 'Anchor_Editor_File_Writer' ) ) {
 				return [ 'success' => false, 'error' => 'File writer unavailable' ];
 			}
-			$result = Anchor_Editor_File_Writer::write_page( $slug, $contents );
+			// Capture whether the file exists before writing so we can pair a new post.
+			$abs_php  = trailingslashit( get_stylesheet_directory() ) . 'page-content/' . $slug . '.php';
+			$was_new  = ! file_exists( $abs_php );
+			$result   = Anchor_Editor_File_Writer::write_page( $slug, $contents );
 			if ( is_wp_error( $result ) ) {
 				return [ 'success' => false, 'error' => $result->get_error_message() ];
 			}
-			return [ 'success' => true, 'result' => [ 'path' => $result['path'], 'bak_path' => $result['bak_path'] ?? '' ] ];
+			$out = [ 'path' => $result['path'], 'bak_path' => $result['bak_path'] ?? '' ];
+			// Pair a WP page post when a brand-new page-content file is created.
+			if ( $was_new && class_exists( 'Anchor_Editor_Page_Sync' ) ) {
+				$rel_path = ltrim( $path, '/' );
+				if ( preg_match( '#^child-theme/page-content/(?P<slug>[A-Za-z0-9_\-/]+)\.php$#', $rel_path, $m ) ) {
+					$post_id = Anchor_Editor_Page_Sync::ensure_post( $m['slug'] );
+					if ( is_wp_error( $post_id ) ) {
+						$out['warning'] = 'File written but paired post could not be created: ' . $post_id->get_error_message();
+					} else {
+						$out['post_id']  = $post_id;
+						$out['edit_url'] = Anchor_Editor_Page_Sync::get_edit_url( $post_id );
+					}
+				}
+			}
+			return [ 'success' => true, 'result' => $out ];
 		}
 
 		if ( $ext === 'css' ) {
@@ -168,11 +185,14 @@ class Anchor_AI_Tool_Registry {
 		if ( is_wp_error( $r ) ) {
 			return [ 'success' => false, 'error' => $r->get_error_message() ];
 		}
-		return [ 'success' => true, 'result' => [
+		$out = [
 			'path'     => $r['path'],
 			'slug'     => $r['slug'],
 			'template' => $r['template'],
-		] ];
+		];
+		if ( isset( $r['post_id'] ) )  $out['post_id']  = $r['post_id'];
+		if ( isset( $r['edit_url'] ) ) $out['edit_url'] = $r['edit_url'];
+		return [ 'success' => true, 'result' => $out ];
 	}
 
 	private static function tool_done( $args ) {
