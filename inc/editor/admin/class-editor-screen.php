@@ -88,14 +88,17 @@ class Anchor_Editor_Screen {
         // Use get_page_uri() for hierarchical slug (e.g. services/web-design).
         $slug    = $post ? get_page_uri( $post ) : '';
 
+        wp_enqueue_media(); // for the featured-image picker
+
         wp_localize_script( 'anchor-editor-app', 'anchorEditor', [
-            'restBase'  => rest_url( 'anchor-assistant/v1/' ),
-            'nonce'     => wp_create_nonce( 'wp_rest' ),
-            'monacoVs'  => 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs',
-            'postId'    => $post_id,
-            'slug'      => $slug,
-            'title'     => $post ? $post->post_title : '',
-            'homeUrl'   => home_url( '/' ),
+            'restBase'       => rest_url( 'anchor-assistant/v1/' ),
+            'nonce'          => wp_create_nonce( 'wp_rest' ),
+            'monacoVs'       => 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs',
+            'postId'         => $post_id,
+            'slug'           => $slug,
+            'title'          => $post ? $post->post_title : '',
+            'homeUrl'        => home_url( '/' ),
+            'editUrlBypass'  => $post_id ? admin_url( 'post.php?post=' . $post_id . '&action=edit&anchor_bypass=1' ) : '',
         ] );
     }
 
