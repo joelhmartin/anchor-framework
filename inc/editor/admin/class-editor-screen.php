@@ -98,7 +98,6 @@ class Anchor_Editor_Screen {
             'slug'           => $slug,
             'title'          => $post ? $post->post_title : '',
             'homeUrl'        => home_url( '/' ),
-            'editUrlBypass'  => $post_id ? admin_url( 'post.php?post=' . $post_id . '&action=edit&anchor_bypass=1' ) : '',
         ] );
     }
 

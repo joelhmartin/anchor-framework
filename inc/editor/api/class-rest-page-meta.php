@@ -74,16 +74,25 @@ class Anchor_Editor_REST_Page_Meta {
             }
         }
 
+        if ( array_key_exists( 'meta_description', $params ) && is_string( $params['meta_description'] ) ) {
+            update_post_meta( $post_id, '_yoast_wpseo_metadesc', sanitize_textarea_field( $params['meta_description'] ) );
+        }
+        if ( array_key_exists( 'focus_keyphrase', $params ) && is_string( $params['focus_keyphrase'] ) ) {
+            update_post_meta( $post_id, '_yoast_wpseo_focuskw', sanitize_text_field( $params['focus_keyphrase'] ) );
+        }
+
         $post     = get_post( $post_id );
         $page_uri = get_page_uri( $post );
         return rest_ensure_response( [
-            'post_id'      => $post_id,
-            'title'        => $post->post_title,
-            'slug'         => $post->post_name,
-            'page_uri'     => $page_uri,
-            'edit_url'     => admin_url( 'admin.php?page=anchor-editor&post=' . $post_id ),
-            'permalink'    => get_permalink( $post_id ),
-            'featured_id'  => (int) get_post_thumbnail_id( $post_id ),
+            'post_id'          => $post_id,
+            'title'            => $post->post_title,
+            'slug'             => $post->post_name,
+            'page_uri'         => $page_uri,
+            'edit_url'         => admin_url( 'admin.php?page=anchor-editor&post=' . $post_id ),
+            'permalink'        => get_permalink( $post_id ),
+            'featured_id'      => (int) get_post_thumbnail_id( $post_id ),
+            'meta_description' => (string) get_post_meta( $post_id, '_yoast_wpseo_metadesc', true ),
+            'focus_keyphrase'  => (string) get_post_meta( $post_id, '_yoast_wpseo_focuskw', true ),
         ] );
     }
 }

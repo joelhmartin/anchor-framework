@@ -190,8 +190,11 @@ import { createUtilityPalette } from './utility-palette.js';
         '      </section>',
         '      <section class="ae-side-block">',
         '        <h3>SEO</h3>',
-        '        <a class="ae-btn ae-side-btn" id="ae-yoast-bypass" href="" target="_blank" rel="noopener">Edit SEO →</a>',
-        '        <p class="ae-side-note">Opens the classic WP edit screen with our takeover bypassed so Yoast renders natively.</p>',
+        '        <label>Meta description</label>',
+        '        <textarea id="ae-meta-desc" rows="3" maxlength="160"></textarea>',
+        '        <small id="ae-meta-desc-count" class="ae-side-hint">0 / 160</small>',
+        '        <label>Focus keyphrase</label>',
+        '        <input type="text" id="ae-focus-kw" />',
         '      </section>',
         '      <section class="ae-side-block">',
         '        <h3>Anchor</h3>',
@@ -352,7 +355,19 @@ import { createUtilityPalette } from './utility-palette.js';
             setFeaturedPreview(m.source_url);
         }
 
-        document.getElementById('ae-yoast-bypass').href = cfg.editUrlBypass || '#';
+        // Yoast meta — read current values back from the anchor page-meta endpoint.
+        const seoResp = await fetch(restBase + 'editor/page-meta', {
+            method: 'POST',
+            headers: { 'X-WP-Nonce': nonce, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ post_id: postId }),
+        });
+        if (seoResp.ok) {
+            const seo = await seoResp.json();
+            document.getElementById('ae-meta-desc').value = seo.meta_description || '';
+            document.getElementById('ae-focus-kw').value  = seo.focus_keyphrase  || '';
+            updateMetaDescCount();
+        }
+
         document.getElementById('ae-open-ide').href = `admin.php?page=anchor-live-editor#open=child-theme/page-content/${slug}.php`;
     }
 
@@ -388,6 +403,23 @@ import { createUtilityPalette } from './utility-palette.js';
     document.getElementById('ae-slug').addEventListener('blur', function() {
         savePostMeta({ slug: document.getElementById('ae-slug').value });
     });
+
+    // SEO fields — save on blur, update char count on input
+    document.getElementById('ae-meta-desc').addEventListener('blur', function() {
+        savePostMeta({ meta_description: document.getElementById('ae-meta-desc').value });
+    });
+    document.getElementById('ae-meta-desc').addEventListener('input', updateMetaDescCount);
+    document.getElementById('ae-focus-kw').addEventListener('blur', function() {
+        savePostMeta({ focus_keyphrase: document.getElementById('ae-focus-kw').value });
+    });
+
+    function updateMetaDescCount() {
+        var v = document.getElementById('ae-meta-desc').value || '';
+        var c = document.getElementById('ae-meta-desc-count');
+        if (!c) return;
+        c.textContent = v.length + ' / 160';
+        c.classList.toggle('is-warn', v.length > 160 || v.length < 50);
+    }
 
     // Featured image picker (wp.media)
     document.getElementById('ae-pick-featured').addEventListener('click', function(e) {

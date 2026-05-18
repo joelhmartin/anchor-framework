@@ -374,3 +374,26 @@
     margin-top: 8px;
     border: 1px solid #ddd;
 }
+
+/* ── SEO sidebar fields ── */
+.ae-side-block textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.ae-side-hint {
+    display: block;
+    color: #888;
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+.ae-side-hint.is-warn {
+    color: #d63638;
+}
