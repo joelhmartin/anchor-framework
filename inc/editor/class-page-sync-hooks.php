@@ -88,8 +88,11 @@ class Anchor_Editor_Page_Sync_Hooks {
 			return;
 		}
 
-		$old_slug = $post_before->post_name;
-		$new_slug = $post_after->post_name;
+		// Use the full hierarchical URI (e.g. 'services/web-design') so that
+		// nested pages rename the correct file.  get_page_uri() may return ''
+		// for unpublished posts; fall back to post_name in that edge case.
+		$old_slug = get_page_uri( $post_before ) ?: $post_before->post_name;
+		$new_slug = get_page_uri( $post_after )  ?: $post_after->post_name;
 
 		// Nothing to do if slug is unchanged.
 		if ( $old_slug === $new_slug ) {
@@ -116,11 +119,12 @@ class Anchor_Editor_Page_Sync_Hooks {
 				)
 			);
 
+			// Revert only the leaf post_name (not the full URI).
 			$reverting = true;
 			wp_update_post(
 				array(
 					'ID'        => $post_id,
-					'post_name' => $old_slug,
+					'post_name' => $post_before->post_name,
 				)
 			);
 			$reverting = false;
@@ -138,7 +142,9 @@ class Anchor_Editor_Page_Sync_Hooks {
 		if ( ! Anchor_Editor_Page_Sync::is_anchor_managed( $post_id ) ) {
 			return;
 		}
-		$this->pending_deletes[ (int) $post_id ] = $post->post_name;
+		// Capture the full hierarchical URI while the post (and its parents) still
+		// exist in the DB.  Fall back to post_name if get_page_uri returns ''.
+		$this->pending_deletes[ (int) $post_id ] = get_page_uri( $post ) ?: $post->post_name;
 	}
 
 	/**
