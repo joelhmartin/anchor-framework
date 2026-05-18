@@ -42,8 +42,61 @@ class Anchor_Editor_Screen {
     }
 
     public function enqueue_assets( $hook ) {
-        // Phase 3 will populate this. For Phase 2, no assets are enqueued.
-        if ( strpos( (string) $hook, self::PAGE_SLUG ) === false ) return;
+        // WP fires 'admin_page_{slug}' for hidden submenu pages.
+        if ( strpos( (string) $hook, self::PAGE_SLUG ) === false ) {
+            return;
+        }
+
+        $tpl_dir = get_template_directory();
+        $tpl_url = get_template_directory_uri();
+
+        // ── Styles ──────────────────────────────────────────────────────────
+        $css_path = $tpl_dir . '/assets/editor/css/anchor-editor.css';
+        wp_enqueue_style(
+            'anchor-editor-app',
+            $tpl_url . '/assets/editor/css/anchor-editor.css',
+            [],
+            file_exists( $css_path ) ? (string) filemtime( $css_path ) : '1.0.0'
+        );
+
+        wp_enqueue_style(
+            'anchor-editor-fa',
+            'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css',
+            [],
+            null
+        );
+
+        // ── Script ──────────────────────────────────────────────────────────
+        $bundle_rel = '/dist/anchor-editor.min.js';
+        $bundle_abs = $tpl_dir . $bundle_rel;
+
+        if ( ! file_exists( $bundle_abs ) ) {
+            return;
+        }
+
+        wp_enqueue_script(
+            'anchor-editor-app',
+            $tpl_url . $bundle_rel,
+            [],
+            (string) filemtime( $bundle_abs ),
+            true
+        );
+
+        // ── Localised config ────────────────────────────────────────────────
+        $post_id = isset( $_GET['post'] ) ? (int) $_GET['post'] : 0;
+        $post    = $post_id ? get_post( $post_id ) : null;
+        // Use get_page_uri() for hierarchical slug (e.g. services/web-design).
+        $slug    = $post ? get_page_uri( $post ) : '';
+
+        wp_localize_script( 'anchor-editor-app', 'anchorEditor', [
+            'restBase'  => rest_url( 'anchor-assistant/v1/' ),
+            'nonce'     => wp_create_nonce( 'wp_rest' ),
+            'monacoVs'  => 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs',
+            'postId'    => $post_id,
+            'slug'      => $slug,
+            'title'     => $post ? $post->post_title : '',
+            'homeUrl'   => home_url( '/' ),
+        ] );
     }
 
     public function render() {
@@ -59,7 +112,6 @@ class Anchor_Editor_Screen {
         echo '<h1 class="wp-heading-inline">' . esc_html( $post->post_title ) . '</h1> ';
         echo '<a href="' . esc_url( get_permalink( $post_id ) ) . '" class="page-title-action" target="_blank">View ↗</a>';
         echo '<div id="anchor-editor-app" data-post-id="' . esc_attr( $post_id ) . '" data-slug="' . esc_attr( $slug ) . '" data-loading="1">';
-        echo '<p>Loading Anchor Editor…</p>';
         echo '</div>';
         echo '</div>';
     }
